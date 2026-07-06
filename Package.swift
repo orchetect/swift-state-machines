@@ -31,8 +31,8 @@ let package = Package(
                 // none
             ],
             swiftSettings: [
-                .define("DEBUG", .when(configuration: .debug)),
-                .enableExperimentalFeature("Lifetimes")
+                .define("DEBUG", .when(configuration: .debug))
+                // .enableExperimentalFeature("Lifetimes")
             ]
         ),
         .testTarget(
