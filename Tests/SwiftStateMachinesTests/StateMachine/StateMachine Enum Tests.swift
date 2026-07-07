@@ -35,7 +35,7 @@ struct StateMachine_Enum_Tests {
 
     @Test
     func transition() {
-        var sm = StateMachine<MyState>(initialState: .one)
+        let sm = StateMachine<MyState>(initialState: .one)
 
         #expect(sm.transition(to: .two) == true)
 
@@ -46,7 +46,7 @@ struct StateMachine_Enum_Tests {
 
     @Test
     func withResources() {
-        var sm = StateMachine<MyState>(initialState: .one)
+        let sm = StateMachine<MyState>(initialState: .one)
 
         // compiler warning; `Never` resources
         let oneResources: Never? = sm.withResources(for: .one) { resources in

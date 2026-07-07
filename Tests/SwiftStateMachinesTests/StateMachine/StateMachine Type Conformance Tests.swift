@@ -28,7 +28,7 @@ struct StateMachine_Type_Conformance_Tests {
 
     @Test
     func transition() {
-        var sm = StateMachine<Int>(initialState: 1)
+        let sm = StateMachine<Int>(initialState: 1)
 
         #expect(sm.transition(to: 2) == true)
 

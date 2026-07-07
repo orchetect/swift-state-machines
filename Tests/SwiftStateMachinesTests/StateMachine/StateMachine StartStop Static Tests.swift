@@ -57,7 +57,7 @@ struct StateMachine_StartStop_Static_Tests {
 
     @Test
     func transitions() {
-        var sm = StateMachine(initialState: .started(), resources: 1)
+        let sm = StateMachine(initialState: .started(), resources: 1)
 
         // stop
         #expect(sm.transition(to: .stopped()) == true)
