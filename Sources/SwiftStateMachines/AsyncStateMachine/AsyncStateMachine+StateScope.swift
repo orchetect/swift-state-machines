@@ -111,7 +111,7 @@ extension AsyncStateMachine {
         expecting expectedStates: Set<State>,
         _ block: sending @escaping @isolated(any) (_ context: State.Context) async throws(E) -> T,
         wrongState failureBlock: sending @escaping @isolated(any) (_ context: State.Context) async throws(E) -> T
-    ) async throws(E) -> T {
+    ) async throws(E) -> T where State: Hashable {
         try await withState(
             expecting: { expectedStates.contains($0) },
             block,
@@ -130,7 +130,7 @@ extension AsyncStateMachine {
         expecting expectedStates: Set<State>,
         _ block: sending @escaping @isolated(any) () async throws(E) -> T,
         wrongState failureBlock: sending @escaping @isolated(any) () async throws(E) -> T
-    ) async throws(E) -> T {
+    ) async throws(E) -> T where State: Hashable {
         try await withState(
             expecting: expectedStates,
             { _ throws(E) in try await block() },

@@ -19,7 +19,7 @@ extension StateMachine {
     /// the failure block is executed instead of the main block.
     nonisolated
     public func withState<T, E>(
-        expecting isStateExpected: (_ state: State) -> Bool,
+        expecting predicate: (_ state: State) -> Bool,
         _ block: (_ context: State.Context) throws(E) -> T,
         wrongState failureBlock: (_ context: State.Context) throws(E) -> T
     ) throws(E) -> T {
@@ -33,7 +33,7 @@ extension StateMachine {
             toState
         }
 
-        guard isStateExpected(oldState) else {
+        guard predicate(oldState) else {
             return try failureBlock(context)
         }
 
@@ -49,12 +49,12 @@ extension StateMachine {
     /// the failure block is executed instead of the main block.
     nonisolated
     public func withState<T, E>(
-        expecting isStateExpected: (_ state: State) -> Bool,
+        expecting predicate: (_ state: State) -> Bool,
         _ block: () throws(E) -> T,
         wrongState failureBlock: () throws(E) -> T
     ) throws(E) -> T {
         try withState(
-            expecting: isStateExpected,
+            expecting: predicate,
             { _ throws(E) in try block() },
             wrongState: { _ throws(E) in try failureBlock() }
         )
@@ -112,7 +112,7 @@ extension StateMachine {
         expecting expectedStates: Set<State>,
         _ block: (_ context: State.Context) throws(E) -> T,
         wrongState failureBlock: (_ context: State.Context) throws(E) -> T
-    ) throws(E) -> T {
+    ) throws(E) -> T where State: Hashable {
         try withState(
             expecting: { expectedStates.contains($0) },
             block,
@@ -132,7 +132,7 @@ extension StateMachine {
         expecting expectedStates: Set<State>,
         _ block: () throws(E) -> T,
         wrongState failureBlock: () throws(E) -> T
-    ) throws(E) -> T {
+    ) throws(E) -> T where State: Hashable {
         try withState(
             expecting: expectedStates,
             { _ throws(E) in try block() },
@@ -141,7 +141,7 @@ extension StateMachine {
     }
 }
 
-// MARK: - State Scope (NonAsync)
+// MARK: - State Scope (Async)
 
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
 extension StateMachine {
@@ -156,7 +156,7 @@ extension StateMachine {
     /// the failure block is executed instead of the main block.
     nonisolated
     public func withState<T, E>(
-        expecting isStateExpected: (_ state: State) -> Bool,
+        expecting predicate: (_ state: State) -> Bool,
         _ block: (_ context: State.Context) async throws(E) -> T,
         wrongState failureBlock: (_ context: State.Context) async throws(E) -> T
     ) async throws(E) -> T {
@@ -170,7 +170,7 @@ extension StateMachine {
             toState
         }
 
-        guard isStateExpected(oldState) else {
+        guard predicate(oldState) else {
             return try await failureBlock(context)
         }
 
@@ -186,12 +186,12 @@ extension StateMachine {
     /// the failure block is executed instead of the main block.
     nonisolated
     public func withState<T, E>(
-        expecting isStateExpected: (_ state: State) -> Bool,
+        expecting predicate: (_ state: State) -> Bool,
         _ block: () async throws(E) -> T,
         wrongState failureBlock: () async throws(E) -> T
     ) async throws(E) -> T {
         try await withState(
-            expecting: isStateExpected,
+            expecting: predicate,
             { _ async throws(E) in try await block() },
             wrongState: { _ async throws(E) in try await failureBlock() }
         )
@@ -249,7 +249,7 @@ extension StateMachine {
         expecting expectedStates: Set<State>,
         _ block: (_ context: State.Context) async throws(E) -> T,
         wrongState failureBlock: (_ context: State.Context) async throws(E) -> T
-    ) async throws(E) -> T {
+    ) async throws(E) -> T where State: Hashable {
         try await withState(
             expecting: { expectedStates.contains($0) },
             block,
@@ -269,7 +269,7 @@ extension StateMachine {
         expecting expectedStates: Set<State>,
         _ block: () async throws(E) -> T,
         wrongState failureBlock: () async throws(E) -> T
-    ) async throws(E) -> T {
+    ) async throws(E) -> T where State: Hashable {
         try await withState(
             expecting: expectedStates,
             { _ async throws(E) in try await block() },
