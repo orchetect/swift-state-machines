@@ -4,6 +4,104 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
+// MARK: - State Asserts
+
+@available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
+extension StateMachine {
+    // MARK: State Predicate
+
+    /// Returns a boolean value describing whether the current state satisfies the given predicate.
+    ///
+    /// If the state machine is currently transitioning to the expected state, this method waits for the the
+    /// transition to complete and then returns.
+    ///
+    /// If the state machine is not currently in the expected state or transitioning to the expected state,
+    /// the specified error is returned
+    nonisolated
+    public func assertState(
+        _ predicate: (_ state: State) -> Bool
+    ) -> Bool {
+        withState(expecting: predicate, { true }, wrongState: { false })
+    }
+
+    /// Returns without throwing if the current state satisfies the given predicate.
+    ///
+    /// If the state machine is currently transitioning to the expected state, this method waits for the the
+    /// transition to complete and then returns.
+    ///
+    /// If the state machine is not currently in the expected state or transitioning to the expected state,
+    /// the specified error is returned
+    nonisolated
+    public func assertState<E: Error>(
+        _ predicate: (_ state: State) -> Bool,
+        throwing error: @autoclosure () -> E
+    ) throws(E) {
+        try withState(expecting: predicate, { _ throws(E) in }, wrongState: { _ throws(E) in throw error() })
+    }
+
+    // MARK: Specific State
+
+    /// Returns a boolean value describing whether the current state is equal to the expected state.
+    ///
+    /// If the state machine is currently transitioning to the expected state, this method waits for the the
+    /// transition to complete and then returns.
+    ///
+    /// If the state machine is not currently in the expected state or transitioning to the expected state,
+    /// the specified error is returned
+    nonisolated
+    public func assertState(
+        is expectedState: State
+    ) -> Bool where State: Equatable {
+        withState(expecting: expectedState, { true }, wrongState: { false })
+    }
+
+    /// Returns without throwing if the current state is equal to the expected state.
+    ///
+    /// If the state machine is currently transitioning to the expected state, this method waits for the the
+    /// transition to complete and then returns.
+    ///
+    /// If the state machine is not currently in the expected state or transitioning to the expected state,
+    /// the specified error is returned
+    nonisolated
+    public func assertState<E: Error>(
+        is expectedState: State,
+        throwing error: @autoclosure () -> E
+    ) throws(E) where State: Equatable {
+        try withState(expecting: expectedState, { _ throws(E) in }, wrongState: { _ throws(E) in throw error() })
+    }
+
+    // MARK: Set of States
+
+    /// Returns a boolean value describing whether the current state is equal to one of the expected states.
+    ///
+    /// If the state machine is currently transitioning to the expected state, this method waits for the the
+    /// transition to complete and then returns.
+    ///
+    /// If the state machine is not currently in the expected state or transitioning to the expected state,
+    /// the specified error is returned
+    nonisolated
+    public func assertState(
+        is expectedStates: Set<State>,
+    ) -> Bool where State: Hashable {
+        withState(expecting: expectedStates, { true }, wrongState: { false })
+    }
+
+    /// Returns without throwing if the current state is equal to one of the expected states.
+    ///
+    /// If the state machine is currently transitioning to the expected state, this method waits for the the
+    /// transition to complete and then returns.
+    ///
+    /// If the state machine is not currently in the expected state or transitioning to the expected state,
+    /// the specified error is returned
+    nonisolated
+    public func assertState<E: Error>(
+        is expectedStates: Set<State>,
+        throwing error: @autoclosure () -> E
+    ) throws(E) where State: Hashable {
+        try withState(expecting: expectedStates, { _ throws(E) in }, wrongState: { _ throws(E) in throw error() })
+    }
+}
+
 // MARK: - State Scope (Non-Async)
 
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
