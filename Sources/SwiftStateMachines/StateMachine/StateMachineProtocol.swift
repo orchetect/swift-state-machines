@@ -4,38 +4,38 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public protocol StateMachineProtocol<StateID> {
+public protocol StateMachineProtocol<StateID>: ~Copyable {
     associatedtype StateID: Hashable, Sendable
     var stateWithResources: StateMachineStateWithResources<StateID> { get set }
 
-    init(stateWithResources: StateMachineStateWithResources<StateID>)
+    init(stateWithResources: consuming StateMachineStateWithResources<StateID>)
 }
 
 // MARK: - Inits
 
-extension StateMachineProtocol {
-    public init<S: StateMachineState<StateID>>(initialState: S, resources: S.StateResources) {
+extension StateMachineProtocol where Self: ~Copyable {
+    public init<S: StateMachineState<StateID>>(initialState: consuming S, resources: consuming S.StateResources) {
         self.init(stateWithResources: StateMachineStateWithResources(state: initialState, resources: resources))
     }
 
-    public init<S: StateMachineState<StateID>>(initialState: S) where S.StateResources == Never {
+    public init<S: StateMachineState<StateID>>(initialState: consuming S) where S.StateResources == Never {
         self.init(stateWithResources: StateMachineStateWithResources(state: initialState))
     }
 
     @_disfavoredOverload
-    public init<S: StateMachineState<StateID>>(initialState: StateID, resources: S.StateResources) where S == StateID {
+    public init<S: StateMachineState<StateID>>(initialState: consuming StateID, resources: consuming S.StateResources) where S == StateID {
         self.init(stateWithResources: StateMachineStateWithResources(state: initialState, resources: resources))
     }
 
     @_disfavoredOverload
-    public init<S: StateMachineState<StateID>>(initialState: StateID) where S == StateID, S.StateResources == Never {
+    public init<S: StateMachineState<StateID>>(initialState: consuming StateID) where S == StateID, S.StateResources == Never {
         self.init(stateWithResources: StateMachineStateWithResources(state: initialState))
     }
 }
 
 // MARK: - Transition
 
-extension StateMachineProtocol {
+extension StateMachineProtocol where Self: ~Copyable {
     @discardableResult
     public mutating func transition<S: StateMachineState<StateID>>(to newState: S, resources: () -> S.StateResources) -> Bool {
         guard stateWithResources.state.canTransition(to: newState) else { return false }
@@ -67,7 +67,7 @@ extension StateMachineProtocol {
 
 // MARK: - With Resources
 
-extension StateMachineProtocol {
+extension StateMachineProtocol where Self: ~Copyable {
     public mutating func withResources<S: StateMachineState<StateID>, T, E>(
         for expectedState: S,
         _ block: (_ resources: inout S.StateResources) throws(E) -> T,
@@ -107,7 +107,7 @@ extension StateMachineProtocol {
 
 // MARK: - Resources
 
-extension StateMachineProtocol {
+extension StateMachineProtocol where Self: ~Copyable {
     public func resources<S: StateMachineState<StateID>>(for expectedState: S) -> S.StateResources? {
         stateWithResources.resources(for: expectedState)
     }
@@ -131,7 +131,7 @@ extension StateMachineProtocol {
 
 // MARK: - Assert
 
-extension StateMachineProtocol {
+extension StateMachineProtocol where Self: ~Copyable {
     public func assertState<S: StateMachineState<StateID>>(
         is expectedState: S
     ) -> Bool {

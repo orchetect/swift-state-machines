@@ -6,24 +6,45 @@
 
 import class Foundation.NSLock
 
-public struct SerialStateMachine<StateID: Hashable & Sendable>: StateMachineProtocol {
+public struct SerialStateMachine<StateID: Hashable & Sendable>: StateMachineProtocol, ~Copyable {
     public typealias StateID = StateID
-    public var stateWithResources: StateMachineStateWithResources<StateID>
 
-    let lock = NSLock()
+    nonisolated
+    public var stateWithResources: StateMachineStateWithResources<StateID> {
+        _read {
+            stateWithResourcesLock.lock()
+            defer { stateWithResourcesLock.unlock() }
+            yield _stateWithResources
+        }
+        _modify {
+            stateWithResourcesLock.lock()
+            defer { stateWithResourcesLock.unlock() }
+            yield &_stateWithResources
+        }
+    }
+    nonisolated(unsafe) private var _stateWithResources: StateMachineStateWithResources<StateID>
 
-    public init(stateWithResources: StateMachineStateWithResources<StateID>) {
-        self.stateWithResources = stateWithResources
+    nonisolated
+    let stateWithResourcesLock = NSLock()
+
+    nonisolated
+    let fenceLock = NSLock()
+
+    nonisolated
+    public init(stateWithResources: consuming StateMachineStateWithResources<StateID>) {
+        self._stateWithResources = stateWithResources
     }
 }
 
+extension SerialStateMachine: Sendable { }
+
 extension SerialStateMachine {
-    func _lock() -> Bool {
-        lock.lock(before: .init())
+    func _fenceLock() -> Bool {
+        fenceLock.lock(before: .init())
     }
 
-    func _unlock() {
-        lock.unlock()
+    func _fenceUnlock() {
+        fenceLock.unlock()
     }
 }
 
@@ -32,8 +53,8 @@ extension SerialStateMachine: SerialStateMachineProtocol {
         _ block: (_ stateMachine: inout Self) throws(E) -> T,
         lockFailure: () throws(E) -> T
     ) throws(E) -> T {
-        guard _lock() else { return try lockFailure() }
-        defer { _unlock() }
+        guard _fenceLock() else { return try lockFailure() }
+        defer { _fenceUnlock() }
 
         return try block(&self)
     }

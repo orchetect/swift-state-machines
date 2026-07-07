@@ -4,7 +4,7 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public protocol SerialStateMachineProtocol: StateMachineProtocol {
+public protocol SerialStateMachineProtocol: StateMachineProtocol, ~Copyable {
     /// Access the state machine within a scoped exclusive lock.
     mutating func withLock<E, T>(
         _ block: (_ stateMachine: inout Self) throws(E) -> T,
@@ -12,7 +12,7 @@ public protocol SerialStateMachineProtocol: StateMachineProtocol {
     ) throws(E) -> T
 }
 
-extension SerialStateMachineProtocol {
+extension SerialStateMachineProtocol where Self: ~Copyable {
     /// Access the state machine within a scoped exclusive lock, throwing the specified error if the lock cannot be acquired.
     public mutating func withLock<E, T>(
         _ block: (_ stateMachine: inout Self) throws(E) -> T,

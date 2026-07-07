@@ -4,7 +4,7 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public struct StateMachineStateWithResources<StateID: Hashable & Sendable> {
+public struct StateMachineStateWithResources<StateID: Hashable & Sendable>: ~Copyable {
     var state: any StateMachineState<StateID>
     var resources: Any
 

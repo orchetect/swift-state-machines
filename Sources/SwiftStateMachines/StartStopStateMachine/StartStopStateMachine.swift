@@ -4,7 +4,7 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public struct StartStopStateMachine<StartedResources: Sendable> {
+public struct StartStopStateMachine<StartedResources: Sendable>: ~Copyable {
     public typealias StartedState = StartedStateMachineState<StartedResources>
     public typealias StoppedState = StoppedStateMachineState<StartedResources>
     public typealias StoppedPermanentlyState = StoppedPermanentlyStateMachineState<StartedResources>
