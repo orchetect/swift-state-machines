@@ -5,38 +5,34 @@
 //
 
 public protocol SerialStateMachineProtocol: StateMachineProtocol {
-    func _lock() -> Bool
-    func _unlock()
+    /// Access the state machine within a scoped exclusive lock.
+    mutating func withLock<E, T>(
+        _ block: (_ stateMachine: inout Self) throws(E) -> T,
+        lockFailure: () throws(E) -> T
+    ) throws(E) -> T
 }
 
 extension SerialStateMachineProtocol {
-    public mutating func serialTransition<S: StateMachineState<StateID>>(to newState: S, resources: () -> S.StateResources) -> Bool {
-        guard _lock() else { return false }
-        defer { _unlock() }
-
-        return transition(to: newState, resources: resources)
+    /// Access the state machine within a scoped exclusive lock, throwing the specified error if the lock cannot be acquired.
+    public mutating func withLock<E, T>(
+        _ block: (_ stateMachine: inout Self) throws(E) -> T,
+        throwing lockFailureError: E
+    ) throws(E) -> T {
+        try withLock { sm throws(E) in
+            try block(&sm)
+        } lockFailure: { () throws(E) in
+            throw lockFailureError
+        }
     }
 
-    public mutating func serialTransition<S: StateMachineState<StateID>>(to newState: S) -> Bool where S.StateResources == Never {
-        guard _lock() else { return false }
-        defer { _unlock() }
-
-        return transition(to: newState)
-    }
-
-    @_disfavoredOverload @discardableResult
-    public mutating func serialTransition<S: StateMachineState<StateID>>(to newState: StateID, resources: () -> S.StateResources) -> Bool where S == StateID {
-        guard _lock() else { return false }
-        defer { _unlock() }
-
-        return transition(to: newState, resources: resources)
-    }
-
-    @_disfavoredOverload @discardableResult
-    public mutating func serialTransition<S: StateMachineState<StateID>>(to newState: StateID) -> Bool where S == StateID, S.StateResources == Never {
-        guard _lock() else { return false }
-        defer { _unlock() }
-
-        return transition(to: newState)
+    /// Access the state machine within a scoped exclusive lock, failing silently if the lock cannot be acquired.
+    public mutating func withLockIfAvailable<E>(
+        _ block: (_ stateMachine: inout Self) throws(E) -> Void
+    ) throws(E) -> Void {
+        try withLock { sm throws(E) in
+            try block(&sm)
+        } lockFailure: { () throws(E) in
+            // void
+        }
     }
 }

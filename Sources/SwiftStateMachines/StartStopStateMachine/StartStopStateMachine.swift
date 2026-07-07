@@ -9,7 +9,7 @@ public struct StartStopStateMachine<StartedResources: Sendable> {
     public typealias StoppedState = StoppedStateMachineState<StartedResources>
     public typealias StoppedPermanentlyState = StoppedPermanentlyStateMachineState<StartedResources>
 
-    var stateMachine = StateMachine<StartStopStateID>(initialState: StoppedState())
+    var stateMachine = SerialStateMachine<StartStopStateID>(initialState: StoppedState())
 
     public init() { }
 }
@@ -20,8 +20,12 @@ extension StartStopStateMachine {
     public mutating func start(
         resources: () -> StartedStateMachineState<StartedResources>.StateResources
     ) -> Bool {
-        stateMachine.transition(to: StartedStateMachineState<StartedResources>()) {
-            resources()
+        stateMachine.withLock { stateMachine in
+            stateMachine.transition(to: .started()) {
+                resources()
+            }
+        } lockFailure: {
+            false
         }
     }
 
@@ -29,18 +33,22 @@ extension StartStopStateMachine {
         permanently isPermanent: Bool = false,
         resourcesTeardown: ((_ resources: StartedState.StateResources) -> Void)? = nil
     ) -> Bool {
-        if let resourcesTeardown {
-            stateMachine.withResources(for: StartedState()) { resources in
-                // clean up resources
-                resourcesTeardown(resources)
-            } wrongState: {
-                // ignore
+        stateMachine.withLock { stateMachine in
+            if let resourcesTeardown {
+                stateMachine.withResources(for: .started()) { resources in
+                    // clean up resources
+                    resourcesTeardown(resources)
+                } wrongState: {
+                    // ignore
+                }
             }
-        }
 
-        return isPermanent
-            ? stateMachine.transition(to: StoppedPermanentlyState())
-            : stateMachine.transition(to: StoppedState())
+            return isPermanent
+                ? stateMachine.transition(to: .stoppedPermanently())
+                : stateMachine.transition(to: .stopped())
+        } lockFailure: {
+            false
+        }
     }
 }
 

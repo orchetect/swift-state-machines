@@ -4,7 +4,7 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public protocol StateMachineProtocol {
+public protocol StateMachineProtocol<StateID> {
     associatedtype StateID: Hashable, Sendable
     var stateWithResources: StateMachineStateWithResources<StateID> { get set }
 
