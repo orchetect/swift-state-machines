@@ -42,7 +42,8 @@ let package = Package(
                 .product(name: "TestingExtensions", package: "swift-testing-extensions")
             ]
         )
-    ]
+    ],
+    swiftLanguageModes: [.v6]
 )
 
 #if canImport(Foundation) || canImport(CoreFoundation)
