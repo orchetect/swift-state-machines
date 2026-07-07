@@ -17,6 +17,7 @@ public struct StartStopStateMachine<StartedResources: Sendable>: ~Copyable {
 // MARK: - Lifecycle
 
 extension StartStopStateMachine {
+    @discardableResult
     public func start(
         resources: () -> StartedStateMachineState<StartedResources>.StateResources
     ) -> Bool {
@@ -29,6 +30,7 @@ extension StartStopStateMachine {
         }
     }
 
+    @discardableResult
     public func stop(
         permanently isPermanent: Bool = false,
         resourcesTeardown: ((_ resources: StartedState.StateResources) -> Void)? = nil
