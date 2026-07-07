@@ -1,5 +1,5 @@
 //
-//  StartStopStateMachine Type Conformance Tests.swift
+//  StateMachine Type Conformance Tests.swift
 //  SwiftStateMachines • https://github.com/orchetect/swift-state-machines
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
@@ -18,7 +18,7 @@ extension Int: StateMachineState {
 }
 
 @Suite
-struct StartStopStateMachine_Type_Conformance_Tests {
+struct StateMachine_Type_Conformance_Tests {
     @Test
     func defaultState() {
         let sm = StateMachine<Int>(initialState: 1)

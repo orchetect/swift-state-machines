@@ -1,5 +1,5 @@
 //
-//  StartStopStateMachine Static Tests.swift
+//  StateMachine StartStop Static Tests.swift
 //  SwiftStateMachines • https://github.com/orchetect/swift-state-machines
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
@@ -9,7 +9,7 @@ import SwiftStateMachines
 import Testing
 
 @Suite
-struct StartStopStateMachine_Static_Tests {
+struct StateMachine_StartStop_Static_Tests {
     @Test
     func hasResources() {
         var sm = StateMachine(initialState: .started(), resources: 1)
@@ -22,8 +22,8 @@ struct StartStopStateMachine_Static_Tests {
 
         // resources
         #expect(sm.resources(for: .started()) == 1)
-        #expect(sm.resources(for: .stopped()) == nil) // throws warning; `Never` resources
-        #expect(sm.resources(for: .stoppedPermanently()) == nil) // throws warning; `Never` resources
+        #expect(sm.resources(for: .stopped()) == nil) // compiler warning; `Never` resources
+        #expect(sm.resources(for: .stoppedPermanently()) == nil) // compiler warning; `Never` resources
 
         // with resources
         do {
@@ -35,7 +35,7 @@ struct StartStopStateMachine_Static_Tests {
             #expect(r == 1)
         }
         do {
-            // throws warning; `Never` resources
+            // compiler warning; `Never` resources
             let r: Never? = sm.withResources(for: .stopped()) { resources in
                 resources
             } wrongState: {
@@ -45,7 +45,7 @@ struct StartStopStateMachine_Static_Tests {
         }
 
         do {
-            // throws warning; `Never` resources
+            // compiler warning; `Never` resources
             let r: Never? = sm.withResources(for: .stoppedPermanently()) { resources in
                 resources
             } wrongState: {

@@ -1,5 +1,5 @@
 //
-//  StartStopStateMachine Enum Tests.swift
+//  StateMachine Enum Tests.swift
 //  SwiftStateMachines • https://github.com/orchetect/swift-state-machines
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
@@ -25,7 +25,7 @@ extension MyState: StateMachineState {
 }
 
 @Suite
-struct StartStopStateMachine_Enum_Tests {
+struct StateMachine_Enum_Tests {
     @Test
     func defaultState() {
         let sm = StateMachine<MyState>(initialState: .one)
@@ -42,5 +42,26 @@ struct StartStopStateMachine_Enum_Tests {
         #expect(sm.assertState(is: .one) == false)
         #expect(sm.assertState(is: .two) == true)
         #expect(sm.assertState(is: .three) == false)
+    }
+
+    @Test
+    func withResources() {
+        var sm = StateMachine<MyState>(initialState: .one)
+
+        // compiler warning; `Never` resources
+        let oneResources: Never? = sm.withResources(for: .one) { resources in
+            resources
+        } wrongState: {
+            nil
+        }
+        #expect(oneResources == nil)
+
+        // compiler warning; `Never` resources
+        let twoResources: Never? = sm.withResources(for: .two) { resources in
+            resources
+        } wrongState: {
+            nil
+        }
+        #expect(twoResources == nil)
     }
 }
