@@ -6,9 +6,14 @@
 
 public struct StateMachine<StateID: Hashable & Sendable>: StateMachineProtocol, ~Copyable {
     public typealias StateID = StateID
-    public var stateWithResources: StateMachineStateWithResources<StateID>
+    public let stateWithResources: StateMachineStateWithResources<StateID>
 
     public init(stateWithResources: consuming StateMachineStateWithResources<StateID>) {
         self.stateWithResources = stateWithResources
+    }
+
+    public func update(stateWithResources: consuming StateMachineStateWithResources<StateID>) {
+        self.stateWithResources.state = stateWithResources.state
+        self.stateWithResources.resources = stateWithResources.resources
     }
 }

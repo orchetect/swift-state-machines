@@ -4,7 +4,7 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public struct StateMachineStateWithResources<StateID: Hashable & Sendable>: ~Copyable {
+public class StateMachineStateWithResources<StateID: Hashable & Sendable> {
     var state: any StateMachineState<StateID>
     var resources: Any
 
@@ -20,7 +20,7 @@ public struct StateMachineStateWithResources<StateID: Hashable & Sendable>: ~Cop
 }
 
 extension StateMachineStateWithResources {
-    mutating func withResources<State: StateMachineState<StateID>, T, E>(
+    func withResources<State: StateMachineState<StateID>, T, E>(
         for expectedState: State,
         _ block: (_ resources: inout State.StateResources) throws(E) -> T,
         wrongState failureBlock: () throws(E) -> T

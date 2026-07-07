@@ -6,9 +6,11 @@
 
 public protocol StateMachineProtocol<StateID>: ~Copyable {
     associatedtype StateID: Hashable, Sendable
-    var stateWithResources: StateMachineStateWithResources<StateID> { get set }
+    var stateWithResources: StateMachineStateWithResources<StateID> { get }
 
     init(stateWithResources: consuming StateMachineStateWithResources<StateID>)
+
+    func update(stateWithResources: consuming StateMachineStateWithResources<StateID>)
 }
 
 // MARK: - Inits
@@ -37,30 +39,30 @@ extension StateMachineProtocol where Self: ~Copyable {
 
 extension StateMachineProtocol where Self: ~Copyable {
     @discardableResult
-    public mutating func transition<S: StateMachineState<StateID>>(to newState: S, resources: () -> S.StateResources) -> Bool {
+    public func transition<S: StateMachineState<StateID>>(to newState: S, resources: () -> S.StateResources) -> Bool {
         guard stateWithResources.state.canTransition(to: newState) else { return false }
-        stateWithResources = StateMachineStateWithResources(state: newState, resources: resources())
+        update(stateWithResources: StateMachineStateWithResources(state: newState, resources: resources()))
         return true
     }
 
     @discardableResult
-    public mutating func transition<S: StateMachineState<StateID>>(to newState: S) -> Bool where S.StateResources == Never {
+    public func transition<S: StateMachineState<StateID>>(to newState: S) -> Bool where S.StateResources == Never {
         guard stateWithResources.state.canTransition(to: newState) else { return false }
-        stateWithResources = StateMachineStateWithResources(state: newState)
+        update(stateWithResources: StateMachineStateWithResources(state: newState))
         return true
     }
 
     @_disfavoredOverload @discardableResult
-    public mutating func transition<S: StateMachineState<StateID>>(to newState: StateID, resources: () -> S.StateResources) -> Bool where S == StateID {
+    public func transition<S: StateMachineState<StateID>>(to newState: StateID, resources: () -> S.StateResources) -> Bool where S == StateID {
         guard stateWithResources.state.canTransition(to: newState) else { return false }
-        stateWithResources = StateMachineStateWithResources(state: newState, resources: resources())
+        update(stateWithResources: StateMachineStateWithResources(state: newState, resources: resources()))
         return true
     }
 
     @_disfavoredOverload @discardableResult
-    public mutating func transition<S: StateMachineState<StateID>>(to newState: StateID) -> Bool where S == StateID, S.StateResources == Never {
+    public func transition<S: StateMachineState<StateID>>(to newState: StateID) -> Bool where S == StateID, S.StateResources == Never {
         guard stateWithResources.state.canTransition(to: newState) else { return false }
-        stateWithResources = StateMachineStateWithResources(state: newState)
+        update(stateWithResources: StateMachineStateWithResources(state: newState))
         return true
     }
 }
@@ -68,7 +70,7 @@ extension StateMachineProtocol where Self: ~Copyable {
 // MARK: - With Resources
 
 extension StateMachineProtocol where Self: ~Copyable {
-    public mutating func withResources<S: StateMachineState<StateID>, T, E>(
+    public func withResources<S: StateMachineState<StateID>, T, E>(
         for expectedState: S,
         _ block: (_ resources: inout S.StateResources) throws(E) -> T,
         wrongState failureBlock: () throws(E) -> T
@@ -77,7 +79,7 @@ extension StateMachineProtocol where Self: ~Copyable {
     }
 
     @available(*, deprecated, message: "State machine state does not have resources. This always fails.")
-    public mutating func withResources<S: StateMachineState<StateID>, T, E>(
+    public func withResources<S: StateMachineState<StateID>, T, E>(
         for expectedState: S,
         _ block: (_ resources: inout S.StateResources) throws(E) -> T,
         wrongState failureBlock: () throws(E) -> T
@@ -86,7 +88,7 @@ extension StateMachineProtocol where Self: ~Copyable {
     }
 
     @_disfavoredOverload
-    public mutating func withResources<S: StateMachineState<StateID>, T, E>(
+    public func withResources<S: StateMachineState<StateID>, T, E>(
         for expectedState: StateID,
         _ block: (_ resources: inout S.StateResources) throws(E) -> T,
         wrongState failureBlock: () throws(E) -> T
@@ -96,7 +98,7 @@ extension StateMachineProtocol where Self: ~Copyable {
 
     @available(*, deprecated, message: "State machine state does not have resources. This always fails.")
     @_disfavoredOverload
-    public mutating func withResources<S: StateMachineState<StateID>, T, E>(
+    public func withResources<S: StateMachineState<StateID>, T, E>(
         for expectedState: StateID,
         _ block: (_ resources: inout S.StateResources) throws(E) -> T,
         wrongState failureBlock: () throws(E) -> T

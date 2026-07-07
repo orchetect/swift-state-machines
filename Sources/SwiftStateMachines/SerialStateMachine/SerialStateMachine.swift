@@ -6,7 +6,7 @@
 
 import class Foundation.NSLock
 
-public struct SerialStateMachine<StateID: Hashable & Sendable>: StateMachineProtocol, ~Copyable {
+public final class SerialStateMachine<StateID: Hashable & Sendable>: StateMachineProtocol {
     public typealias StateID = StateID
 
     nonisolated
@@ -34,6 +34,11 @@ public struct SerialStateMachine<StateID: Hashable & Sendable>: StateMachineProt
     public init(stateWithResources: consuming StateMachineStateWithResources<StateID>) {
         self._stateWithResources = stateWithResources
     }
+
+    nonisolated
+    public func update(stateWithResources: consuming StateMachineStateWithResources<StateID>) {
+        self.stateWithResources = stateWithResources
+    }
 }
 
 extension SerialStateMachine: Sendable { }
@@ -49,13 +54,13 @@ extension SerialStateMachine {
 }
 
 extension SerialStateMachine: SerialStateMachineProtocol {
-    public mutating func withLock<E, T>(
-        _ block: (_ stateMachine: inout Self) throws(E) -> T,
+    public func withLock<E, T>(
+        _ block: (_ stateMachine: borrowing SerialStateMachine<StateID>) throws(E) -> T,
         lockFailure: () throws(E) -> T
     ) throws(E) -> T {
         guard _fenceLock() else { return try lockFailure() }
         defer { _fenceUnlock() }
 
-        return try block(&self)
+        return try block(self)
     }
 }
