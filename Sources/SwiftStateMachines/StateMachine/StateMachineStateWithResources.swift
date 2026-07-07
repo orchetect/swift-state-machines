@@ -25,7 +25,7 @@ extension StateMachineStateWithResources {
         _ block: (_ resources: inout State.StateResources) throws(E) -> T,
         wrongState failureBlock: () throws(E) -> T
     ) throws(E) -> T {
-        guard let state = state as? State else { return try failureBlock() }
+        guard state is State else { return try failureBlock() }
         return try withUnsafeMutablePointer(to: &resources) { ptr throws(E) in
             try ptr.withMemoryRebound(to: State.StateResources.self, capacity: 1) { pointer throws(E) in
                 try block(&pointer.pointee)
@@ -34,7 +34,7 @@ extension StateMachineStateWithResources {
     }
 
     func resources<State: StateMachineState<StateID>>(for expectedState: State) -> State.StateResources? {
-        guard let state = state as? State else { return nil }
+        guard state is State else { return nil }
         return (resources as! State.StateResources)
     }
 }

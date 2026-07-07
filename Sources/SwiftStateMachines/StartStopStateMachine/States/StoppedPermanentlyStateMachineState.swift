@@ -4,7 +4,7 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public struct StoppedPermanentlyStateMachineState<StartedResources>: StartStopStateMachineState<StartedResources> {
+public struct StoppedPermanentlyStateMachineState<StartedResources>: StateMachineState {
     public let stateID: StartStopStateID<StartedResources> = .stoppedPermanently
 
     public typealias StateResources = Never
@@ -18,9 +18,9 @@ public struct StoppedPermanentlyStateMachineState<StartedResources>: StartStopSt
 
 // MARK: - Static Constructors
 
-extension StateMachineState where Self == StoppedPermanentlyStateMachineState<any Any> {
-    public static var stoppedPermanently: Self {
-        Self()
+extension StateMachineState where Self == StoppedPermanentlyStateMachineState<Sendable> {
+    public static func stoppedPermanently<T: Sendable>(_ startedResourcesType: T.Type = T.self) -> StoppedPermanentlyStateMachineState<T> {
+        StoppedPermanentlyStateMachineState()
     }
 }
 
