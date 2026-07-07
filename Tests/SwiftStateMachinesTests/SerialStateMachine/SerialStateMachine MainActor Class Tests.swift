@@ -11,7 +11,6 @@ import Testing
 
 @Suite
 struct SerialStateMachine_MainActor_Class_Tests {
-    @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
     @MainActor
     private final class Foo: Sendable {
         let lifecycle = SerialStateMachine<StartStopStateID>(initialState: .stopped)
@@ -48,7 +47,6 @@ struct SerialStateMachine_MainActor_Class_Tests {
         }
     }
 
-    @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
     @Test
     func concurrentStartsAndStopsAsync() async {
         let foo = Foo()
