@@ -5,7 +5,7 @@
 //
 
 /// Implements methods required by ``StartableObjectStateMachineState``.
-public protocol StartableObject: SendableMetatype {
+public protocol StartableObject {
     associatedtype StartConfiguration: Sendable
 
     init()

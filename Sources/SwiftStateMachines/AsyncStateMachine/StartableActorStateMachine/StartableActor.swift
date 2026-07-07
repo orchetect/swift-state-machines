@@ -5,7 +5,7 @@
 //
 
 /// Implements methods required by ``StartableActorStateMachineState``.
-public protocol StartableActor: Actor, SendableMetatype {
+public protocol StartableActor: Actor {
     associatedtype StartConfiguration: Sendable
 
     init()
