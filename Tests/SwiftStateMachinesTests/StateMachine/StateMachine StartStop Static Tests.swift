@@ -15,10 +15,10 @@ struct StateMachine_StartStop_Static_Tests {
         var sm = StateMachine(initialState: .started(), resources: 1)
 
         // assert
-        #expect(sm.assertState(is: .started()))
-        #expect(sm.assertState(is: .started))
-        #expect(!sm.assertState(is: .stopped))
-        #expect(!sm.assertState(is: .stoppedPermanently))
+        #expect(sm.assertState(is: .started()) == true)
+        #expect(sm.assertState(is: .started) == true)
+        #expect(sm.assertState(is: .stopped) == false)
+        #expect(sm.assertState(is: .stoppedPermanently) == false)
 
         // resources
         #expect(sm.resources(for: .started()) == 1)
@@ -73,7 +73,7 @@ struct StateMachine_StartStop_Static_Tests {
 
         // stop
         #expect(sm.transition(to: .stopped()) == true)
-        #expect(sm.assertState(is: .stopped))
+        #expect(sm.assertState(is: .stopped) == true)
 
         // stop permanently
         #expect(sm.transition(to: .stoppedPermanently()) == true)
@@ -91,6 +91,6 @@ struct StateMachine_StartStop_Static_Tests {
     @Test func noResources() {
         // since no resources type is declared, `Never` is defaulted and we can use the non-Generics static constructor
         let sm = StateMachine(initialState: .started)
-        #expect(sm.assertState(is: .started))
+        #expect(sm.assertState(is: .started) == true)
     }
 }

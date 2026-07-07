@@ -23,7 +23,7 @@ struct StateMachine_Type_Conformance_Tests {
     func defaultState() {
         let sm = StateMachine<Int>(initialState: 1)
 
-        #expect(sm.assertState(is: 1))
+        #expect(sm.assertState(is: 1) == true)
     }
 
     @Test

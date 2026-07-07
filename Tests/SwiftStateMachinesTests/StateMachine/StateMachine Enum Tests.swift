@@ -30,7 +30,7 @@ struct StateMachine_Enum_Tests {
     func defaultState() {
         let sm = StateMachine<MyState>(initialState: .one)
 
-        #expect(sm.assertState(is: .one))
+        #expect(sm.assertState(is: .one) == true)
     }
 
     @Test
