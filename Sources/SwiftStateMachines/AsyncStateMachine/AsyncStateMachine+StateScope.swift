@@ -19,7 +19,7 @@ extension AsyncStateMachine {
     /// the failure block is executed instead of the main block.
     @_disfavoredOverload
     public func withState<T: Sendable, E>(
-        expecting isStateExpected: (_ state: State) -> Bool,
+        expecting predicate: (_ state: State) -> Bool,
         _ block: sending @escaping @isolated(any) (_ context: State.Context) async throws(E) -> T,
         wrongState failureBlock: sending @escaping @isolated(any) (_ context: State.Context) async throws(E) -> T
     ) async throws(E) -> T {
@@ -30,7 +30,7 @@ extension AsyncStateMachine {
             toState
         }
 
-        guard isStateExpected(oldState) else {
+        guard predicate(oldState) else {
             return try await failureBlock(context)
         }
 
@@ -45,12 +45,12 @@ extension AsyncStateMachine {
     /// If the state machine is not currently in the expected state or transitioning to the expected state,
     /// the failure block is executed instead of the main block.
     public func withState<T: Sendable, E>(
-        expecting isStateExpected: (_ state: State) -> Bool,
+        expecting predicate: (_ state: State) -> Bool,
         _ block: sending @escaping @isolated(any) () async throws(E) -> T,
         wrongState failureBlock: sending @escaping @isolated(any) () async throws(E) -> T
     ) async throws(E) -> T {
         try await withState(
-            expecting: isStateExpected,
+            expecting: predicate,
             { _ throws(E) in try await block() },
             wrongState: { _ throws(E) in try await failureBlock() }
         )
