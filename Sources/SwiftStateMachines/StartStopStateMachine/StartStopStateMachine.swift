@@ -12,6 +12,9 @@ public struct StartStopStateMachine<StartedResources: Sendable>: ~Copyable {
     var stateMachine = SerialStateMachine<StartStopStateID>(initialState: StoppedState())
 
     public init() { }
+
+    @_disfavoredOverload
+    public init() where StartedResources == Never { }
 }
 
 // MARK: - Lifecycle
