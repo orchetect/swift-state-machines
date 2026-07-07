@@ -1,0 +1,144 @@
+//
+//  StateMachineProtocol.swift
+//  SwiftStateMachines • https://github.com/orchetect/swift-state-machines
+//  © 2026 Steffan Andrews • Licensed under MIT License
+//
+
+public protocol StateMachineProtocol {
+    associatedtype StateID: Hashable, Sendable
+    var stateWithResources: StateMachineStateWithResources<StateID> { get set }
+
+    init(stateWithResources: StateMachineStateWithResources<StateID>)
+}
+
+// MARK: - Inits
+
+extension StateMachineProtocol {
+    public init<S: StateMachineState<StateID>>(initialState: S, resources: S.StateResources) {
+        self.init(stateWithResources: StateMachineStateWithResources(state: initialState, resources: resources))
+    }
+
+    public init<S: StateMachineState<StateID>>(initialState: S.StateID, resources: S.StateResources) where S == StateID {
+        self.init(stateWithResources: StateMachineStateWithResources(state: initialState, resources: resources))
+    }
+
+    public init<S: StateMachineState<StateID>>(initialState: S) where S.StateResources == Never {
+        self.init(stateWithResources: StateMachineStateWithResources(state: initialState))
+    }
+
+    public init<S: StateMachineState<StateID>>(initialState: S.StateID) where S == StateID, S.StateResources == Never {
+        self.init(stateWithResources: StateMachineStateWithResources(state: initialState))
+    }
+}
+
+// MARK: - Transition
+
+extension StateMachineProtocol {
+    @discardableResult
+    public mutating func transition<S: StateMachineState<StateID>>(to newState: S, resources: () -> S.StateResources) -> Bool {
+        guard stateWithResources.state.canTransition(to: newState) else { return false }
+        stateWithResources = StateMachineStateWithResources(state: newState, resources: resources())
+        return true
+    }
+
+    @discardableResult
+    public mutating func transition<S: StateMachineState<StateID>>(to newState: S.StateID, resources: () -> S.StateResources) -> Bool where S == StateID {
+        guard stateWithResources.state.canTransition(to: newState) else { return false }
+        stateWithResources = StateMachineStateWithResources(state: newState, resources: resources())
+        return true
+    }
+
+    @discardableResult
+    public mutating func transition<S: StateMachineState<StateID>>(to newState: S) -> Bool where S.StateResources == Never {
+        guard stateWithResources.state.canTransition(to: newState) else { return false }
+        stateWithResources = StateMachineStateWithResources(state: newState)
+        return true
+    }
+
+    @discardableResult
+    public mutating func transition<S: StateMachineState<StateID>>(to newState: S.StateID) -> Bool where S == StateID, S.StateResources == Never {
+        guard stateWithResources.state.canTransition(to: newState) else { return false }
+        stateWithResources = StateMachineStateWithResources(state: newState)
+        return true
+    }
+}
+
+// MARK: - With Resources
+
+extension StateMachineProtocol {
+    public mutating func withResources<S: StateMachineState<StateID>, T, E>(
+        for expectedState: S,
+        _ block: (_ resources: inout S.StateResources) throws(E) -> T,
+        wrongState failureBlock: () throws(E) -> T
+    ) throws(E) -> T {
+        try stateWithResources.withResources(for: expectedState, block, wrongState: failureBlock)
+    }
+
+    @available(*, unavailable, message: "State type does not have resources.")
+    public mutating func withResources<S: StateMachineState<StateID>, T, E>(
+        for expectedState: S,
+        _ block: (_ resources: inout S.StateResources) throws(E) -> T,
+        wrongState failureBlock: () throws(E) -> T
+    ) throws(E) -> T where S.StateResources == Never {
+        fatalError()
+    }
+
+    @_disfavoredOverload
+    public mutating func withResources<S: StateMachineState<StateID>, T, E>(
+        for expectedState: S.StateID,
+        _ block: (_ resources: inout S.StateResources) throws(E) -> T,
+        wrongState failureBlock: () throws(E) -> T
+    ) throws(E) -> T where S == StateID {
+        try stateWithResources.withResources(for: expectedState, block, wrongState: failureBlock)
+    }
+
+    @available(*, unavailable, message: "State type does not have resources.")
+    @_disfavoredOverload
+    public mutating func withResources<S: StateMachineState<StateID>, T, E>(
+        for expectedState: S.StateID,
+        _ block: (_ resources: inout S.StateResources) throws(E) -> T,
+        wrongState failureBlock: () throws(E) -> T
+    ) throws(E) -> T where S == StateID, S.StateResources == Never {
+        fatalError()
+    }
+}
+
+// MARK: - Resources
+
+extension StateMachineProtocol {
+    public func resources<S: StateMachineState<StateID>>(for expectedState: S) -> S.StateResources? {
+        stateWithResources.resources(for: expectedState)
+    }
+
+    @available(*, unavailable, message: "State type does not have resources.")
+    public func resources<S: StateMachineState<StateID>>(for expectedState: S) -> S.StateResources? where S.StateResources == Never {
+        fatalError()
+    }
+
+    @_disfavoredOverload
+    public func resources<S: StateMachineState<StateID>>(for expectedState: S.StateID) -> S.StateResources? where S == StateID {
+        stateWithResources.resources(for: expectedState)
+    }
+
+    @_disfavoredOverload
+    @available(*, unavailable, message: "State type does not have resources.")
+    public func resources<S: StateMachineState<StateID>>(for expectedState: S.StateID) -> S.StateResources? where S == StateID, S.StateResources == Never {
+        stateWithResources.resources(for: expectedState)
+    }
+}
+
+// MARK: - Assert
+
+extension StateMachineProtocol {
+    public func assertState<S: StateMachineState<StateID>>(
+        is expectedState: S
+    ) -> Bool {
+        stateWithResources.state.stateID == expectedState.stateID
+    }
+
+    public func assertState<S: StateMachineState<StateID>>(
+        is expectedState: S.StateID
+    ) -> Bool where S == StateID  {
+        stateWithResources.state.stateID == expectedState.stateID
+    }
+}
