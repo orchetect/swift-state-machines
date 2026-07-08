@@ -17,6 +17,8 @@ public struct StartStopStateMachine<StartedResources: Sendable>: ~Copyable {
     public init() where StartedResources == Never { }
 }
 
+extension StartStopStateMachine: Sendable { }
+
 // MARK: - Lifecycle
 
 extension StartStopStateMachine {
