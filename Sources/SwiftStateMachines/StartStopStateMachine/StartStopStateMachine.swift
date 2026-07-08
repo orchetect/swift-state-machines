@@ -50,13 +50,13 @@ extension StartStopStateMachine {
     @_disfavoredOverload @discardableResult
     public func stop(
         permanently isPermanent: Bool = false,
-        resourcesTeardown: consuming ((_ resources: StartedState.StateResources) -> Void)? = nil
+        resourcesTeardown: consuming ((_ resources: inout StartedState.StateResources) -> Void)? = nil
     ) -> Bool {
         stateMachine.withLock { stateMachine in
             if let resourcesTeardown {
                 stateMachine.withResources(for: .started()) { resources in
                     // clean up resources
-                    resourcesTeardown(resources)
+                    resourcesTeardown(&resources)
                 } wrongState: {
                     // ignore
                 }
@@ -143,7 +143,7 @@ extension StartStopStateMachine {
     @_disfavoredOverload @discardableResult
     public func stop(
         permanently isPermanent: Bool = false,
-        resourcesTeardown: sending (@isolated(any) (_ resources: StartedState.StateResources) async -> Void)? = nil
+        resourcesTeardown: sending (@isolated(any) (_ resources: inout StartedState.StateResources) async -> Void)? = nil
     ) async -> Bool {
         guard stateMachine._fenceLock() else { return false }
         defer { stateMachine._fenceUnlock() }
@@ -151,7 +151,7 @@ extension StartStopStateMachine {
         if let resourcesTeardown {
             await stateMachine.withResources(for: .started()) { resources in
                 // clean up resources
-                await resourcesTeardown(resources)
+                await resourcesTeardown(&resources)
             } wrongState: {
                 // ignore
             }
@@ -215,9 +215,9 @@ extension StartStopStateMachine {
 // MARK: - Started Resources (Non-Async)
 
 extension StartStopStateMachine {
-    public func withStartedResources<T /* : Sendable */, E>(
-        _ block: sending @escaping /* @isolated(any) */ (_ resources: inout StartedState.StateResources) async throws(E) -> T,
-        wrongState failureBlock: sending @escaping /* @isolated(any) */ () async throws(E) -> T
+    public func withStartedResources<T, E>(
+        _ block: sending @escaping (_ resources: inout StartedState.StateResources) async throws(E) -> T,
+        wrongState failureBlock: sending @escaping () async throws(E) -> T
     ) async throws(E) -> T {
         try await stateMachine.withResources(for: .started()) { resources async throws(E) -> T in
             try await block(&resources)

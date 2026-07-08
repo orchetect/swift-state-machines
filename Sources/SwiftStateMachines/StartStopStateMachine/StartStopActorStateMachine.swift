@@ -49,13 +49,13 @@ extension StartStopActorStateMachine {
     @_disfavoredOverload @discardableResult
     public func stop(
         permanently isPermanent: Bool = false,
-        resourcesTeardown: sending (@isolated(any) (_ resources: StartedState.StateResources) async -> Void)? = nil
+        resourcesTeardown: sending (@isolated(any) (_ resources: inout StartedState.StateResources) async -> Void)? = nil
     ) async -> Bool {
         await stateMachine.withActor { [resourcesTeardown] stateMachine in
             if let resourcesTeardown {
                 await stateMachine.withResources(for: .started()) { [resourcesTeardown] resources in
                     // clean up resources
-                    await resourcesTeardown(resources)
+                    await resourcesTeardown(&resources)
                 } wrongState: {
                     // ignore
                 }
@@ -85,9 +85,9 @@ extension StartStopActorStateMachine {
 // MARK: - Started Resources
 
 extension StartStopActorStateMachine {
-    public func withStartedResources<T /* : Sendable */, E>(
-        _ block: sending @escaping /* @isolated(any) */ (_ resources: inout StartedState.StateResources) async throws(E) -> T,
-        wrongState failureBlock: sending @escaping /* @isolated(any) */ () async throws(E) -> T
+    public func withStartedResources<T, E>(
+        _ block: sending @escaping (_ resources: inout StartedState.StateResources) async throws(E) -> T,
+        wrongState failureBlock: sending @escaping () async throws(E) -> T
     ) async throws(E) -> T {
         try await stateMachine.withResources(for: .started()) { resources async throws(E) -> T in
             try await block(&resources)
