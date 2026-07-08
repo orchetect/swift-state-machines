@@ -34,9 +34,12 @@ extension StartStopStateMachine {
     }
 
     @discardableResult
-    public func start() -> Bool where StartedResources == Never {
+    public func start(
+        _ block: () -> Void
+    ) -> Bool where StartedResources == Never {
         stateMachine.withLock { stateMachine in
-            stateMachine.transition(to: .started())
+            block()
+            return stateMachine.transition(to: .started())
         } lockFailure: {
             false
         }
@@ -45,7 +48,7 @@ extension StartStopStateMachine {
     @discardableResult
     public func stop(
         permanently isPermanent: Bool = false,
-        resourcesTeardown: ((_ resources: StartedState.StateResources) -> Void)? = nil
+        resourcesTeardown: consuming ((_ resources: StartedState.StateResources) -> Void)? = nil
     ) -> Bool {
         stateMachine.withLock { stateMachine in
             if let resourcesTeardown {
@@ -67,9 +70,18 @@ extension StartStopStateMachine {
 
     @discardableResult
     public func stop(
-        permanently isPermanent: Bool = false
+        permanently isPermanent: Bool = false,
+        _ block: () -> Void
     ) -> Bool where StartedResources == Never {
-        stop(permanently: isPermanent, resourcesTeardown: { _ in })
+        stateMachine.withLock { stateMachine in
+            block()
+
+            return isPermanent
+                ? stateMachine.transition(to: .stoppedPermanently())
+                : stateMachine.transition(to: .stopped())
+        } lockFailure: {
+            false
+        }
     }
 }
 
