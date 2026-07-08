@@ -53,6 +53,8 @@ extension SerialStateMachine {
     }
 }
 
+// MARK: - Lock Fence (Non-Async)
+
 extension SerialStateMachine: SerialStateMachineProtocol {
     public func withLock<E, T>(
         _ block: (_ stateMachine: borrowing SerialStateMachine<StateID>) throws(E) -> T,
@@ -62,5 +64,19 @@ extension SerialStateMachine: SerialStateMachineProtocol {
         defer { _fenceUnlock() }
 
         return try block(self)
+    }
+}
+
+// MARK: - Lock Fence (Async)
+
+extension SerialStateMachine {
+    public func withLock<E, T>(
+        _ block: borrowing (_ stateMachine: borrowing SerialStateMachine<StateID>) async throws(E) -> T,
+        lockFailure: () async throws(E) -> T
+    ) async throws(E) -> T {
+        guard _fenceLock() else { return try await lockFailure() }
+        defer { _fenceUnlock() }
+
+        return try await block(self)
     }
 }
