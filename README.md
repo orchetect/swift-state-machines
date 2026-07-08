@@ -10,7 +10,7 @@ This package aims to offer flexible, modern, thread-safe abstractions.
 
 This package provides building blocks to define your own set of states, conditional transition logic, and abstractions to serialize transition changes so that a overlapping calls to the same transition are not repeated.
 
-One of the high-level abstractions avilable combines all of these building blocks into a general-purpose, ready-to-use object lifecycle manager called `StartStopStateMachine`.
+One of the high-level abstractions available combines all of these building blocks into a general-purpose, ready-to-use object lifecycle manager called `StartStopStateMachine`.
 
 In its most basic form, it acts as a start/stop state machine:
 
