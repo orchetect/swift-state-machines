@@ -8,7 +8,7 @@ public protocol StateMachineProtocol<StateID>: ~Copyable {
     associatedtype StateID: Hashable, Sendable
     var stateWithResources: StateMachineStateWithResources<StateID> { get }
 
-    init(stateWithResources: consuming StateMachineStateWithResources<StateID>)
+    init(stateWithResources: consuming sending StateMachineStateWithResources<StateID>)
 
     func update(stateWithResources: consuming StateMachineStateWithResources<StateID>)
 }
