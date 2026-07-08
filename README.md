@@ -6,6 +6,93 @@ General-purpose state machine types for Swift.
 
 This package aims to offer flexible, modern, thread-safe abstractions.
 
+## Getting Started
+
+This package provides building blocks to define your own set of states, conditional transition logic, and abstractions to serialize transition changes so that a overlapping calls to the same transition are not repeated.
+
+One high-level abstraction combines all of these building blocks into a general-purpose, ready-to-use object lifecycle manager called `StartStopStateMachine`.
+
+In its most basic form, it acts as a start/stop state machine that can provide 
+
+```swift
+public class MyService {
+    private let lifecycle = StartStopStateMachine()
+
+    public func start() {
+        lifecycle.start {
+            // perform synchronized work to start the service
+        }
+    }
+
+    public func stop() {
+        lifecycle.stop {
+            // perform synchronized work to teardown the service
+        }
+    }
+}
+```
+
+The type may be specialized to contain started resources that are created and prepared during the transition to the **started** state, and torn down during the transition to the **stopped** state.
+
+The lifecycle of the inner resources is managed by the state machine, and overlapping (concurrent) are serialized, while subsequent repeat calls to attempt to transition to the same start (ie: two back-to-back calls to `start()`) are prevented to retain the integrity of the state machine and its held resources.
+
+```swift
+public class MyService {
+    private let lifecycle = StartStopStateMachine<Model>()
+
+    public func start() {
+        lifecycle.start {
+            let model = Model()
+            model.setup()
+            return model
+        }
+    }
+
+    public func stop() {
+        lifecycle.stop { model in
+            model.teardown()
+        }
+    }
+}
+
+extension MyService {
+    private struct Model: Sendable {
+        var value: Int = 0
+        init() { }
+
+        func setup() { }
+        func teardown() { }
+        mutating func increment() { value += 1 }
+    }
+}
+```
+
+There are various ways to check state and interact with the started resources. Here are a few basic examples:
+
+```swift
+extension MyService {
+    public func doSomethingWithoutCore() throws {
+        guard lifecycle.assertState(is: .started) else { throw SomeError() }
+        // asserts state is started, but we don't need access to the model instance
+    }
+
+    public func readModel() throws {
+        guard let model = lifecycle.startedResources else { throw SomeError() }
+        // the started resources are returned as an immutable copy
+        print(model.value)
+    }
+
+    public func mutateModel() throws {
+        try lifecycle.withStartedResources { model in
+            // the started resources are available as mutable `inout` within scope
+            model.increment()
+        } wrongState: { throw SomeError() }
+    }
+}
+```
+
+The library includes many more methods and types to provide maximum flexibility to fit your implementation requirements.
+
 ## Installation: Swift Package Manager (SPM)
 
 ### Swift Package Manager (SPM)
