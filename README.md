@@ -12,7 +12,7 @@ This package provides building blocks to define your own set of states, conditio
 
 One of the high-level abstractions avilable combines all of these building blocks into a general-purpose, ready-to-use object lifecycle manager called `StartStopStateMachine`.
 
-In its most basic form, it acts as a start/stop state machine that can provide 
+In its most basic form, it acts as a start/stop state machine:
 
 ```swift
 public class MyService {
