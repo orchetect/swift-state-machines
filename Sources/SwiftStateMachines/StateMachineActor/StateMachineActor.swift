@@ -41,7 +41,7 @@ extension StateMachineActor: Sendable { }
 
 extension StateMachineActor: StateMachineActorProtocol {
     public func withActor<E, T>(
-        _ block: sending (_ stateMachine: borrowing StateMachineActor<StateID>) async throws(E) -> T
+        _ block: borrowing (_ stateMachine: borrowing StateMachineActor<StateID>) async throws(E) -> T
     ) async throws(E) -> T {
         try await block(self)
     }

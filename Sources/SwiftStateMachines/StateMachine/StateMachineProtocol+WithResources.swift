@@ -49,7 +49,7 @@ extension StateMachineProtocol where Self: ~Copyable {
 extension StateMachineProtocol where Self: ~Copyable {
     public func withResources<S: StateMachineState<StateID>, T, E>(
         for expectedState: S,
-        _ block: (_ resources: inout S.StateResources) async throws(E) -> T,
+        _ block: @isolated(any) (_ resources: inout S.StateResources) async throws(E) -> T,
         wrongState failureBlock: () async throws(E) -> T
     ) async throws(E) -> T {
         try await stateWithResources.withResources(for: expectedState, block, wrongState: failureBlock)
@@ -58,7 +58,7 @@ extension StateMachineProtocol where Self: ~Copyable {
     @available(*, deprecated, message: "State machine state does not have resources. This always fails.")
     public func withResources<S: StateMachineState<StateID>, T, E>(
         for expectedState: S,
-        _ block: (_ resources: inout S.StateResources) async throws(E) -> T,
+        _ block: @isolated(any) (_ resources: inout S.StateResources) async throws(E) -> T,
         wrongState failureBlock: () async throws(E) -> T
     ) async throws(E) -> T where S.StateResources == Never {
         try await failureBlock()
@@ -67,7 +67,7 @@ extension StateMachineProtocol where Self: ~Copyable {
     @_disfavoredOverload
     public func withResources<S: StateMachineState<StateID>, T, E>(
         for expectedState: StateID,
-        _ block: (_ resources: inout S.StateResources) async throws(E) -> T,
+        _ block: @isolated(any) (_ resources: inout S.StateResources) async throws(E) -> T,
         wrongState failureBlock: () async throws(E) -> T
     ) async throws(E) -> T where S == StateID {
         try await stateWithResources.withResources(for: expectedState, block, wrongState: failureBlock)
@@ -77,7 +77,7 @@ extension StateMachineProtocol where Self: ~Copyable {
     @_disfavoredOverload
     public func withResources<S: StateMachineState<StateID>, T, E>(
         for expectedState: StateID,
-        _ block: (_ resources: inout S.StateResources) async throws(E) -> T,
+        _ block: @isolated(any) (_ resources: inout S.StateResources) async throws(E) -> T,
         wrongState failureBlock: () async throws(E) -> T
     ) async throws(E) -> T where S == StateID, S.StateResources == Never {
         try await failureBlock()

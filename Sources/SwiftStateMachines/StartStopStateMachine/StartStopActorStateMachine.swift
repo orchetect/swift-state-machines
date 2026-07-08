@@ -20,13 +20,15 @@ public struct StartStopActorStateMachine<StartedResources: Sendable>: ~Copyable 
     public init() where StartedResources == Never { }
 }
 
+extension StartStopActorStateMachine: Sendable { }
+
 // MARK: - Lifecycle
 
 extension StartStopActorStateMachine {
     @_disfavoredOverload @discardableResult
-    nonisolated
     public func start(
-        resources: sending () async -> StartedStateMachineState<StartedResources>.StateResources
+        // isolation: isolated (any Actor)? = #isolation,
+        resources: sending @escaping @isolated(any) () async -> StartedStateMachineState<StartedResources>.StateResources
     ) async -> Bool {
         await stateMachine.withActor { stateMachine in
             await stateMachine.transition(to: .started()) {
@@ -37,7 +39,7 @@ extension StartStopActorStateMachine {
 
     @discardableResult
     public func start(
-        _ block: sending () async -> Void
+        _ block: sending @escaping @isolated(any) () async -> Void
     ) async -> Bool where StartedResources == Never {
         await stateMachine.withActor { stateMachine in
             await block()
@@ -48,11 +50,11 @@ extension StartStopActorStateMachine {
     @_disfavoredOverload @discardableResult
     public func stop(
         permanently isPermanent: Bool = false,
-        resourcesTeardown: consuming sending ((_ resources: StartedState.StateResources) async -> Void)? = nil
+        resourcesTeardown: sending (@isolated(any) (_ resources: StartedState.StateResources) async -> Void)? = nil
     ) async -> Bool {
-        await stateMachine.withActor { stateMachine in
+        await stateMachine.withActor { [resourcesTeardown] stateMachine in
             if let resourcesTeardown {
-                await stateMachine.withResources(for: .started()) { resources in
+                await stateMachine.withResources(for: .started()) { [resourcesTeardown] resources in
                     // clean up resources
                     await resourcesTeardown(resources)
                 } wrongState: {
@@ -69,7 +71,7 @@ extension StartStopActorStateMachine {
     @discardableResult
     public func stop(
         permanently isPermanent: Bool = false,
-        _ block: sending () async -> Void
+        _ block: sending @escaping @isolated(any) () async -> Void
     ) async -> Bool where StartedResources == Never {
         await stateMachine.withActor { stateMachine in
             await block()
@@ -84,9 +86,9 @@ extension StartStopActorStateMachine {
 // MARK: - Started Resources
 
 extension StartStopActorStateMachine {
-    public func withStartedResources<T, E>(
-        _ block: (_ resources: inout StartedState.StateResources) async throws(E) -> T,
-        wrongState failureBlock: () async throws(E) -> T
+    public func withStartedResources<T: Sendable, E>(
+        _ block: sending @escaping @isolated(any) (_ resources: inout StartedState.StateResources) async throws(E) -> T,
+        wrongState failureBlock: sending @escaping @isolated(any) () async throws(E) -> T
     ) async throws(E) -> T {
         try await stateMachine.withResources(for: .started()) { resources async throws(E) -> T in
             try await block(&resources)
