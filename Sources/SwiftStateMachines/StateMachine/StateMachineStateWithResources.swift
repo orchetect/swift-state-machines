@@ -19,6 +19,8 @@ public class StateMachineStateWithResources<StateID: Hashable & Sendable> {
     }
 }
 
+// MARK: - Non-Async
+
 extension StateMachineStateWithResources {
     func withResources<State: StateMachineState<StateID>, T, E>(
         for expectedState: State,
@@ -36,5 +38,24 @@ extension StateMachineStateWithResources {
     func resources<State: StateMachineState<StateID>>(for expectedState: State) -> State.StateResources? {
         guard state is State else { return nil }
         return (resources as! State.StateResources)
+    }
+}
+
+// MARK: - Async
+
+extension StateMachineStateWithResources {
+    func withResources<State: StateMachineState<StateID>, T, E>(
+        for expectedState: State,
+        _ block: (_ resources: inout State.StateResources) async throws(E) -> T,
+        wrongState failureBlock: () async throws(E) -> T
+    ) async throws(E) -> T {
+        guard state is State else { return try await failureBlock() }
+        let ptr = withUnsafeMutablePointer(to: &resources) { ptr in
+            ptr.withMemoryRebound(to: State.StateResources.self, capacity: 1) { pointer in
+                pointer
+            }
+        }
+
+        return try await block(&ptr.pointee)
     }
 }

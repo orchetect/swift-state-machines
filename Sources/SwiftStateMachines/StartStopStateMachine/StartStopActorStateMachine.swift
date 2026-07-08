@@ -1,60 +1,59 @@
 //
-//  StartStopStateMachine.swift
+//  StartStopActorStateMachine.swift
 //  SwiftStateMachines • https://github.com/orchetect/swift-state-machines
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public struct StartStopStateMachine<StartedResources: Sendable>: ~Copyable {
+public struct StartStopActorStateMachine<StartedResources: Sendable>: ~Copyable {
     public typealias StartedState = StartedStateMachineState<StartedResources>
     public typealias StoppedState = StoppedStateMachineState<StartedResources>
     public typealias StoppedPermanentlyState = StoppedPermanentlyStateMachineState<StartedResources>
 
-    var stateMachine = SerialStateMachine<StartStopStateID>(initialState: StoppedState())
+    nonisolated
+    var stateMachine = StateMachineActor<StartStopStateID>(initialState: StoppedState())
 
+    nonisolated
     public init() { }
 
     @_disfavoredOverload
+    nonisolated
     public init() where StartedResources == Never { }
 }
 
 // MARK: - Lifecycle
 
-extension StartStopStateMachine {
+extension StartStopActorStateMachine {
     @_disfavoredOverload @discardableResult
     public func start(
-        resources: () -> StartedStateMachineState<StartedResources>.StateResources
-    ) -> Bool {
-        stateMachine.withLock { stateMachine in
-            stateMachine.transition(to: .started()) {
-                resources()
+        resources: sending () async -> StartedStateMachineState<StartedResources>.StateResources
+    ) async -> Bool {
+        await stateMachine.withActor { stateMachine in
+            await stateMachine.transition(to: .started()) {
+                await resources()
             }
-        } lockFailure: {
-            false
         }
     }
 
     @discardableResult
     public func start(
-        _ block: () -> Void
-    ) -> Bool where StartedResources == Never {
-        stateMachine.withLock { stateMachine in
-            block()
+        _ block: sending () async -> Void
+    ) async -> Bool where StartedResources == Never {
+        await stateMachine.withActor { stateMachine in
+            await block()
             return stateMachine.transition(to: .started())
-        } lockFailure: {
-            false
         }
     }
 
     @_disfavoredOverload @discardableResult
     public func stop(
         permanently isPermanent: Bool = false,
-        resourcesTeardown: consuming ((_ resources: StartedState.StateResources) -> Void)? = nil
-    ) -> Bool {
-        stateMachine.withLock { stateMachine in
+        resourcesTeardown: consuming sending ((_ resources: StartedState.StateResources) async -> Void)? = nil
+    ) async -> Bool {
+        await stateMachine.withActor { stateMachine in
             if let resourcesTeardown {
-                stateMachine.withResources(for: .started()) { resources in
+                await stateMachine.withResources(for: .started()) { resources in
                     // clean up resources
-                    resourcesTeardown(resources)
+                    await resourcesTeardown(resources)
                 } wrongState: {
                     // ignore
                 }
@@ -63,42 +62,39 @@ extension StartStopStateMachine {
             return isPermanent
                 ? stateMachine.transition(to: .stoppedPermanently())
                 : stateMachine.transition(to: .stopped())
-        } lockFailure: {
-            false
         }
     }
 
     @discardableResult
     public func stop(
         permanently isPermanent: Bool = false,
-        _ block: () -> Void
-    ) -> Bool where StartedResources == Never {
-        stateMachine.withLock { stateMachine in
-            block()
+        _ block: sending () async -> Void
+    ) async -> Bool where StartedResources == Never {
+        await stateMachine.withActor { stateMachine in
+            await block()
 
             return isPermanent
                 ? stateMachine.transition(to: .stoppedPermanently())
                 : stateMachine.transition(to: .stopped())
-        } lockFailure: {
-            false
         }
     }
 }
 
 // MARK: - Started Resources
 
-extension StartStopStateMachine {
+extension StartStopActorStateMachine {
     public func withStartedResources<T, E>(
-        _ block: (_ resources: inout StartedState.StateResources) throws(E) -> T,
-        wrongState failureBlock: () throws(E) -> T
-    ) throws(E) -> T {
-        try stateMachine.withResources(for: .started()) { resources throws(E) -> T in
-            try block(&resources)
-        } wrongState: { () throws(E) in
-            try failureBlock()
+        _ block: (_ resources: inout StartedState.StateResources) async throws(E) -> T,
+        wrongState failureBlock: () async throws(E) -> T
+    ) async throws(E) -> T {
+        try await stateMachine.withResources(for: .started()) { resources async throws(E) -> T in
+            try await block(&resources)
+        } wrongState: { () async throws(E) in
+            try await failureBlock()
         }
     }
 
+    nonisolated
     public var startedResources: StartedState.StateResources? {
         stateMachine.resources(for: .started())
     }
@@ -106,7 +102,8 @@ extension StartStopStateMachine {
 
 // MARK: - State Asserts
 
-extension StartStopStateMachine {
+extension StartStopActorStateMachine {
+    nonisolated
     public func assertState(is state: StartStopStateID<StartedResources>) -> Bool {
         switch state {
         case .started:
