@@ -33,7 +33,7 @@ extension StartStopStateMachine {
         }
     }
 
-    @discardableResult
+    @_disfavoredOverload @discardableResult
     public func start(
         _ block: () -> Void
     ) -> Bool where StartedResources == Never {
@@ -68,7 +68,7 @@ extension StartStopStateMachine {
         }
     }
 
-    @discardableResult
+    @_disfavoredOverload @discardableResult
     public func stop(
         permanently isPermanent: Bool = false,
         _ block: () -> Void
