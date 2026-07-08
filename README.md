@@ -32,9 +32,11 @@ public class MyService {
 }
 ```
 
-The type may be specialized to contain started resources that are created and prepared during the transition to the **started** state, and torn down during the transition to the **stopped** state.
+## Managed Resources
 
-The lifecycle of the inner resources is managed by the state machine, and overlapping (concurrent) are serialized, while subsequent repeat calls to attempt to transition to the same start (ie: two back-to-back or concurrent calls to `start()`) are prevented to retain the integrity of the state machine and its held resources.
+The `StartStopStateMachine` type may be specialized to contain resources that are created and prepared during the transition to the **started** state, and torn down during the transition to the **stopped** state.
+
+The lifecycle of the inner resources is managed by the state machine, and concurrent state transitions are serialized to retain the integrity of the state machine and its held resources.
 
 ```swift
 public class MyService {
@@ -67,7 +69,7 @@ extension MyService {
 }
 ```
 
-There are various ways to check state and interact with the started resources. Here are a few basic examples:
+There are various ways to check the current state and interact with managed resources. These are a few basic examples:
 
 ```swift
 extension MyService {
