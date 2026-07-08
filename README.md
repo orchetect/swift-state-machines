@@ -73,7 +73,7 @@ There are various ways to check the current state and interact with managed reso
 
 ```swift
 extension MyService {
-    public func doSomethingWithoutCore() throws {
+    public func someActionThatRequiresStartedState() throws {
         guard lifecycle.assertState(is: .started) else { throw SomeError() }
         // asserts state is started, but we don't need access to the model instance
     }
