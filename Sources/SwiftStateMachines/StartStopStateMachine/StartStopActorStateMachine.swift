@@ -24,6 +24,7 @@ public struct StartStopActorStateMachine<StartedResources: Sendable>: ~Copyable 
 
 extension StartStopActorStateMachine {
     @_disfavoredOverload @discardableResult
+    nonisolated
     public func start(
         resources: sending () async -> StartedStateMachineState<StartedResources>.StateResources
     ) async -> Bool {
