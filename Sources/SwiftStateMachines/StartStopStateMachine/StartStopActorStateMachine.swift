@@ -27,7 +27,6 @@ extension StartStopActorStateMachine: Sendable { }
 extension StartStopActorStateMachine {
     @_disfavoredOverload @discardableResult
     public func start(
-        // isolation: isolated (any Actor)? = #isolation,
         resources: sending @escaping @isolated(any) () async -> StartedStateMachineState<StartedResources>.StateResources
     ) async -> Bool {
         await stateMachine.withActor { stateMachine in
@@ -86,9 +85,9 @@ extension StartStopActorStateMachine {
 // MARK: - Started Resources
 
 extension StartStopActorStateMachine {
-    public func withStartedResources<T: Sendable, E>(
-        _ block: sending @escaping @isolated(any) (_ resources: inout StartedState.StateResources) async throws(E) -> T,
-        wrongState failureBlock: sending @escaping @isolated(any) () async throws(E) -> T
+    public func withStartedResources<T /* : Sendable */, E>(
+        _ block: sending @escaping /* @isolated(any) */ (_ resources: inout StartedState.StateResources) async throws(E) -> T,
+        wrongState failureBlock: sending @escaping /* @isolated(any) */ () async throws(E) -> T
     ) async throws(E) -> T {
         try await stateMachine.withResources(for: .started()) { resources async throws(E) -> T in
             try await block(&resources)
