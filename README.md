@@ -10,7 +10,7 @@ This package aims to offer flexible, modern, thread-safe abstractions.
 
 This package provides building blocks to define your own set of states, conditional transition logic, and abstractions to serialize transition changes so that a overlapping calls to the same transition are not repeated.
 
-One high-level abstraction combines all of these building blocks into a general-purpose, ready-to-use object lifecycle manager called `StartStopStateMachine`.
+One of the high-level abstractions avilable combines all of these building blocks into a general-purpose, ready-to-use object lifecycle manager called `StartStopStateMachine`.
 
 In its most basic form, it acts as a start/stop state machine that can provide 
 
@@ -34,7 +34,7 @@ public class MyService {
 
 The type may be specialized to contain started resources that are created and prepared during the transition to the **started** state, and torn down during the transition to the **stopped** state.
 
-The lifecycle of the inner resources is managed by the state machine, and overlapping (concurrent) are serialized, while subsequent repeat calls to attempt to transition to the same start (ie: two back-to-back calls to `start()`) are prevented to retain the integrity of the state machine and its held resources.
+The lifecycle of the inner resources is managed by the state machine, and overlapping (concurrent) are serialized, while subsequent repeat calls to attempt to transition to the same start (ie: two back-to-back or concurrent calls to `start()`) are prevented to retain the integrity of the state machine and its held resources.
 
 ```swift
 public class MyService {
@@ -120,9 +120,7 @@ let package = Package(
 
 ## Documentation
 
-Most methods are implemented as category methods so they are generally discoverable.
-
-All methods are documented with inline help explaining their purpose and basic usage examples.
+Formal documentation is currently a WIP. Complete docs coverage and additional example code is planned for a future releasee.
 
 ## Author
 
