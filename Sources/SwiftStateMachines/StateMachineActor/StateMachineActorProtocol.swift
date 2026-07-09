@@ -7,7 +7,7 @@
 public protocol StateMachineActorProtocol: Actor, StateMachineProtocol {
     /// Access the state machine within a scoped exclusive lock.
     func withActor<E, T>(
-        _ block: borrowing (_ stateMachine: borrowing Self) async throws(E) -> T
+        _ block: sending (_ stateMachine: borrowing Self) async throws(E) -> T
     ) async throws(E) -> T
 }
 
