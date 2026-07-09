@@ -10,7 +10,7 @@ public final class SerialStateMachine<StateID: Hashable & Sendable>: StateMachin
     public typealias StateID = StateID
 
     nonisolated
-    public var stateWithResources: StateMachineStateWithResources<StateID> {
+    public var stateStorage: StateMachineStateStorage<StateID> {
         _read {
             stateWithResourcesLock.lock()
             defer { stateWithResourcesLock.unlock() }
@@ -22,7 +22,7 @@ public final class SerialStateMachine<StateID: Hashable & Sendable>: StateMachin
             yield &_stateWithResources
         }
     }
-    nonisolated(unsafe) private var _stateWithResources: StateMachineStateWithResources<StateID>
+    nonisolated(unsafe) private var _stateWithResources: StateMachineStateStorage<StateID>
 
     nonisolated
     let stateWithResourcesLock = NSLock()
@@ -31,13 +31,13 @@ public final class SerialStateMachine<StateID: Hashable & Sendable>: StateMachin
     let fenceLock = NSLock()
 
     nonisolated
-    public init(stateWithResources: consuming StateMachineStateWithResources<StateID>) {
+    public init(stateWithResources: consuming StateMachineStateStorage<StateID>) {
         self._stateWithResources = stateWithResources
     }
 
     nonisolated
-    public func update(stateWithResources: consuming StateMachineStateWithResources<StateID>) {
-        self.stateWithResources = stateWithResources
+    public func update(stateWithResources: consuming StateMachineStateStorage<StateID>) {
+        self.stateStorage = stateWithResources
     }
 }
 

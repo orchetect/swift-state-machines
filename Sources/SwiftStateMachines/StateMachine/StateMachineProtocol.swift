@@ -6,9 +6,9 @@
 
 public protocol StateMachineProtocol<StateID>: ~Copyable {
     associatedtype StateID: Hashable, Sendable
-    var stateWithResources: StateMachineStateWithResources<StateID> { get }
+    var stateStorage: StateMachineStateStorage<StateID> { get }
 
-    init(stateWithResources: consuming sending StateMachineStateWithResources<StateID>)
+    init(stateWithResources: consuming sending StateMachineStateStorage<StateID>)
 
-    func update(stateWithResources: consuming StateMachineStateWithResources<StateID>)
+    func update(stateWithResources: consuming StateMachineStateStorage<StateID>)
 }

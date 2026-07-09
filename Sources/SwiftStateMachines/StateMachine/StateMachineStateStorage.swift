@@ -4,7 +4,7 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public class StateMachineStateWithResources<StateID: Hashable & Sendable> {
+public class StateMachineStateStorage<StateID: Hashable & Sendable> {
     var state: any StateMachineState<StateID>
     var resources: Any
 
@@ -21,7 +21,7 @@ public class StateMachineStateWithResources<StateID: Hashable & Sendable> {
 
 // MARK: - Non-Async
 
-extension StateMachineStateWithResources {
+extension StateMachineStateStorage {
     func withResources<State: StateMachineState<StateID>, T, E>(
         for expectedState: State,
         _ block: (_ resources: inout State.StateResources) throws(E) -> T,
@@ -43,7 +43,7 @@ extension StateMachineStateWithResources {
 
 // MARK: - Async
 
-extension StateMachineStateWithResources {
+extension StateMachineStateStorage {
     func withResources<State: StateMachineState<StateID>, T, E>(
         for expectedState: State,
         _ block: (_ resources: inout State.StateResources) async throws(E) -> T,

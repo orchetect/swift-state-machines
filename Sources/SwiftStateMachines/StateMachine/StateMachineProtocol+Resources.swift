@@ -6,7 +6,7 @@
 
 extension StateMachineProtocol where Self: ~Copyable {
     public func resources<S: StateMachineState<StateID>>(for expectedState: S) -> S.StateResources? {
-        stateWithResources.resources(for: expectedState)
+        stateStorage.resources(for: expectedState)
     }
 
     @available(*, deprecated, message: "State machine state does not have resources. This always returns nil.")
@@ -16,7 +16,7 @@ extension StateMachineProtocol where Self: ~Copyable {
 
     @_disfavoredOverload
     public func resources<S: StateMachineState<StateID>>(for expectedState: S) -> S.StateResources? where S == StateID {
-        stateWithResources.resources(for: expectedState)
+        stateStorage.resources(for: expectedState)
     }
 
     @_disfavoredOverload

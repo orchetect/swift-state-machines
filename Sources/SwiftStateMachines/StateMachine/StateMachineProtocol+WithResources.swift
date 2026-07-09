@@ -12,7 +12,7 @@ extension StateMachineProtocol where Self: ~Copyable {
         _ block: (_ resources: inout S.StateResources) throws(E) -> T,
         wrongState failureBlock: () throws(E) -> T
     ) throws(E) -> T {
-        try stateWithResources.withResources(for: expectedState, block, wrongState: failureBlock)
+        try stateStorage.withResources(for: expectedState, block, wrongState: failureBlock)
     }
 
     @available(*, deprecated, message: "State machine state does not have resources. This always fails.")
@@ -30,7 +30,7 @@ extension StateMachineProtocol where Self: ~Copyable {
         _ block: (_ resources: inout S.StateResources) throws(E) -> T,
         wrongState failureBlock: () throws(E) -> T
     ) throws(E) -> T where S == StateID {
-        try stateWithResources.withResources(for: expectedState, block, wrongState: failureBlock)
+        try stateStorage.withResources(for: expectedState, block, wrongState: failureBlock)
     }
 
     @available(*, deprecated, message: "State machine state does not have resources. This always fails.")
@@ -52,7 +52,7 @@ extension StateMachineProtocol where Self: ~Copyable {
         _ block: @isolated(any) (_ resources: inout S.StateResources) async throws(E) -> T,
         wrongState failureBlock: () async throws(E) -> T
     ) async throws(E) -> T {
-        try await stateWithResources.withResources(for: expectedState, block, wrongState: failureBlock)
+        try await stateStorage.withResources(for: expectedState, block, wrongState: failureBlock)
     }
 
     @available(*, deprecated, message: "State machine state does not have resources. This always fails.")
@@ -70,7 +70,7 @@ extension StateMachineProtocol where Self: ~Copyable {
         _ block: @isolated(any) (_ resources: inout S.StateResources) async throws(E) -> T,
         wrongState failureBlock: () async throws(E) -> T
     ) async throws(E) -> T where S == StateID {
-        try await stateWithResources.withResources(for: expectedState, block, wrongState: failureBlock)
+        try await stateStorage.withResources(for: expectedState, block, wrongState: failureBlock)
     }
 
     @available(*, deprecated, message: "State machine state does not have resources. This always fails.")

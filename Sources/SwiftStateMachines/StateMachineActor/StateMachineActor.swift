@@ -10,7 +10,7 @@ public actor StateMachineActor<StateID: Hashable & Sendable>: StateMachineProtoc
     public typealias StateID = StateID
 
     nonisolated
-    public var stateWithResources: StateMachineStateWithResources<StateID> {
+    public var stateStorage: StateMachineStateStorage<StateID> {
         _read {
             stateWithResourcesLock.lock()
             defer { stateWithResourcesLock.unlock() }
@@ -22,18 +22,18 @@ public actor StateMachineActor<StateID: Hashable & Sendable>: StateMachineProtoc
             yield &_stateWithResources
         }
     }
-    nonisolated(unsafe) private var _stateWithResources: StateMachineStateWithResources<StateID>
+    nonisolated(unsafe) private var _stateWithResources: StateMachineStateStorage<StateID>
 
     nonisolated
     let stateWithResourcesLock = NSLock()
 
-    public init(stateWithResources: consuming sending StateMachineStateWithResources<StateID>) {
+    public init(stateWithResources: consuming sending StateMachineStateStorage<StateID>) {
         self._stateWithResources = stateWithResources
     }
 
     nonisolated
-    public func update(stateWithResources: consuming StateMachineStateWithResources<StateID>) {
-        self.stateWithResources = stateWithResources
+    public func update(stateWithResources: consuming StateMachineStateStorage<StateID>) {
+        self.stateStorage = stateWithResources
     }
 }
 
