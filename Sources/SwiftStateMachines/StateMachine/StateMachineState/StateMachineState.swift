@@ -8,7 +8,7 @@ public protocol StateMachineState<StateID>: Copyable {
     associatedtype StateID: Hashable, Sendable, Copyable
     var stateID: StateID { get }
 
-    associatedtype StateResources: Sendable
+    associatedtype StateResources // : Sendable
 
-    func canTransition(to newState: some StateMachineState<StateID>) -> Bool
+    func canTransition(to newState: borrowing some StateMachineState<StateID>) -> Bool
 }

@@ -149,11 +149,8 @@ extension StartStopStateMachine {
         defer { stateMachine._fenceUnlock() }
 
         if let resourcesTeardown {
-            await stateMachine.withResources(for: .started()) { resources in
-                // clean up resources
+            if var resources = stateMachine.resources(for: .started()) {
                 await resourcesTeardown(&resources)
-            } wrongState: {
-                // ignore
             }
         }
 
@@ -209,21 +206,6 @@ extension StartStopStateMachine {
 
     public var startedResources: StartedState.StateResources? {
         stateMachine.resources(for: .started())
-    }
-}
-
-// MARK: - Started Resources (Non-Async)
-
-extension StartStopStateMachine {
-    public func withStartedResources<T, E>(
-        _ block: sending @escaping (_ resources: inout StartedState.StateResources) async throws(E) -> T,
-        wrongState failureBlock: sending @escaping () async throws(E) -> T
-    ) async throws(E) -> T {
-        try await stateMachine.withResources(for: .started()) { resources async throws(E) -> T in
-            try await block(&resources)
-        } wrongState: { () async throws(E) in
-            try await failureBlock()
-        }
     }
 }
 

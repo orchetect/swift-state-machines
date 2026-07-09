@@ -1,13 +1,13 @@
 //
-//  StateMachine.swift
+//  SendableStateMachine.swift
 //  SwiftStateMachines • https://github.com/orchetect/swift-state-machines
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public struct StateMachine<StateID: Hashable & Sendable>: StateMachineProtocol, ~Copyable {
+public struct SendableStateMachine<StateID: Hashable & Sendable>: StateMachineProtocol, Sendable, ~Copyable {
     public typealias StateID = StateID
 
-    public typealias StateStorage = StateMachineStateStorage<StateID>
+    public typealias StateStorage = SendableStateMachineStateStorage<StateID>
     public let stateStorage: StateStorage
 
     init(stateStorage: consuming StateStorage) {

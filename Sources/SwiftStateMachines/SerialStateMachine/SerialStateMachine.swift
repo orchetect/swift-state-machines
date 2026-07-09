@@ -12,32 +12,40 @@ public final class SerialStateMachine<StateID: Hashable & Sendable>: StateMachin
     nonisolated
     public var stateStorage: StateMachineStateStorage<StateID> {
         _read {
-            stateWithResourcesLock.lock()
-            defer { stateWithResourcesLock.unlock() }
-            yield _stateWithResources
+            stateStorageLock.lock()
+            defer { stateStorageLock.unlock() }
+            yield _stateStorage
         }
         _modify {
-            stateWithResourcesLock.lock()
-            defer { stateWithResourcesLock.unlock() }
-            yield &_stateWithResources
+            stateStorageLock.lock()
+            defer { stateStorageLock.unlock() }
+            yield &_stateStorage
         }
     }
-    nonisolated(unsafe) private var _stateWithResources: StateMachineStateStorage<StateID>
+    nonisolated(unsafe) private var _stateStorage: StateMachineStateStorage<StateID>
 
     nonisolated
-    let stateWithResourcesLock = NSLock()
+    let stateStorageLock = NSLock()
 
     nonisolated
     let fenceLock = NSLock()
 
     nonisolated
-    public init(stateWithResources: consuming StateMachineStateStorage<StateID>) {
-        self._stateWithResources = stateWithResources
+    init(stateStorage: consuming StateMachineStateStorage<StateID>) {
+        self._stateStorage = stateStorage
+    }
+
+    public convenience init<S: StateMachineState<StateID>>(initialState: consuming sending S, resources: consuming sending S.StateResources) {
+        self.init(stateStorage: StateStorage(state: initialState, resources: resources))
+    }
+
+    public convenience init<S: StateMachineState<StateID>>(initialState: consuming sending S) where S.StateResources == Never {
+        self.init(stateStorage: StateStorage(state: initialState))
     }
 
     nonisolated
-    public func update(stateWithResources: consuming StateMachineStateStorage<StateID>) {
-        self.stateStorage = stateWithResources
+    public func update(stateStorage: consuming StateMachineStateStorage<StateID>) {
+        self.stateStorage = stateStorage
     }
 }
 

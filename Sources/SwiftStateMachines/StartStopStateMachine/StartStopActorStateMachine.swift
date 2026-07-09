@@ -53,11 +53,8 @@ extension StartStopActorStateMachine {
     ) async -> Bool {
         await stateMachine.withActor { [resourcesTeardown] stateMachine in
             if let resourcesTeardown {
-                await stateMachine.withResources(for: .started()) { [resourcesTeardown] resources in
-                    // clean up resources
+                if var resources = stateMachine.resources(for: .started()) {
                     await resourcesTeardown(&resources)
-                } wrongState: {
-                    // ignore
                 }
             }
 
@@ -85,7 +82,7 @@ extension StartStopActorStateMachine {
 // MARK: - Started Resources
 
 extension StartStopActorStateMachine {
-    public func withStartedResources<T, E>(
+    public func withStartedResources<T: Sendable, E>(
         _ block: sending @escaping (_ resources: inout StartedState.StateResources) async throws(E) -> T,
         wrongState failureBlock: sending @escaping () async throws(E) -> T
     ) async throws(E) -> T {

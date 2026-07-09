@@ -9,31 +9,40 @@ import class Foundation.NSLock
 public actor StateMachineActor<StateID: Hashable & Sendable>: StateMachineProtocol {
     public typealias StateID = StateID
 
+    public typealias StateStorage = SendableStateMachineStateStorage<StateID>
     nonisolated
-    public var stateStorage: StateMachineStateStorage<StateID> {
+    public var stateStorage: StateStorage {
         _read {
-            stateWithResourcesLock.lock()
-            defer { stateWithResourcesLock.unlock() }
-            yield _stateWithResources
+            stateStorageLock.lock()
+            defer { stateStorageLock.unlock() }
+            yield _stateStorage
         }
         _modify {
-            stateWithResourcesLock.lock()
-            defer { stateWithResourcesLock.unlock() }
-            yield &_stateWithResources
+            stateStorageLock.lock()
+            defer { stateStorageLock.unlock() }
+            yield &_stateStorage
         }
     }
-    nonisolated(unsafe) private var _stateWithResources: StateMachineStateStorage<StateID>
+    nonisolated(unsafe) private var _stateStorage: StateStorage
 
     nonisolated
-    let stateWithResourcesLock = NSLock()
+    let stateStorageLock = NSLock()
 
-    public init(stateWithResources: consuming sending StateMachineStateStorage<StateID>) {
-        self._stateWithResources = stateWithResources
+    init(stateStorage: consuming sending StateStorage) {
+        self._stateStorage = stateStorage
+    }
+
+    public init<S: StateMachineState<StateID>>(initialState: consuming sending S, resources: consuming sending S.StateResources) {
+        self.init(stateStorage: StateStorage(state: initialState, resources: resources))
+    }
+
+    public init<S: StateMachineState<StateID>>(initialState: consuming sending S) where S.StateResources == Never {
+        self.init(stateStorage: StateStorage(state: initialState))
     }
 
     nonisolated
-    public func update(stateWithResources: consuming StateMachineStateStorage<StateID>) {
-        self.stateStorage = stateWithResources
+    public func update(stateStorage: consuming StateStorage) {
+        self.stateStorage = stateStorage
     }
 }
 
