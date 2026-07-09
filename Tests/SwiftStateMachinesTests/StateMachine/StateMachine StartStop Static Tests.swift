@@ -12,7 +12,7 @@ import Testing
 struct StateMachine_StartStop_Static_Tests {
     @Test
     func hasResources() {
-        var sm = StateMachine(initialState: .started(), resources: 1)
+        let sm = StateMachine(initialState: .started(), resources: 1)
 
         // assert
         #expect(sm.assertState(is: .started()) == true)
