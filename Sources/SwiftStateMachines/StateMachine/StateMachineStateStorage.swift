@@ -4,18 +4,47 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public class StateMachineStateStorage<StateID: Hashable & Sendable> {
-    var state: any StateMachineState<StateID>
-    var resources: Any
+import class Foundation.NSLock
+
+public final class StateMachineStateStorage<StateID: Hashable & Sendable>: Sendable {
+    var state: any StateMachineState<StateID> {
+        get {
+            stateLock.lock()
+            defer { stateLock.unlock() }
+            return _state
+        }
+        set {
+            stateLock.lock()
+            defer { stateLock.unlock() }
+            _state = newValue
+        }
+    }
+    nonisolated(unsafe) private var _state: any StateMachineState<StateID>
+    private let stateLock = NSLock()
+
+    var resources: Any {
+        get {
+            resourcesLock.lock()
+            defer { resourcesLock.unlock() }
+            return _resources
+        }
+        set {
+            resourcesLock.lock()
+            defer { resourcesLock.unlock() }
+            _resources = newValue
+        }
+    }
+    nonisolated(unsafe) private var _resources: Any
+    private let resourcesLock = NSLock()
 
     init<State: StateMachineState<StateID>>(state: State, resources: State.StateResources) {
-        self.state = state
-        self.resources = resources
+        self._state = state
+        self._resources = resources
     }
 
     init<State: StateMachineState<StateID>>(state: State) where State.StateResources == Never {
-        self.state = state
-        self.resources = ()
+        self._state = state
+        self._resources = ()
     }
 }
 
