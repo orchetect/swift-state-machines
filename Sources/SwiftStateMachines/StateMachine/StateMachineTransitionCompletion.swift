@@ -1,13 +1,12 @@
 //
 //  StateMachineTransitionCompletion.swift
-//  AppleScript.swift
-//  Dipper © 2023-2026 Existential Audio
+//  SwiftStateMachines • https://github.com/orchetect/swift-state-machines
+//  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
 public struct StateMachineTransitionCompletion<
-    State: StateMachineState,
-    StateStorage: StateMachineStateStorageProtocol
->: ~Copyable where StateStorage.StateID == State.StateID {
+    State: StateMachineState
+>: ~Copyable {
     let wrapped: Wrapped
 
     init(wrapped: Wrapped) {
@@ -29,11 +28,11 @@ extension StateMachineTransitionCompletion {
     }
 
     public static func failed<S: StateMachineState<State.StateID>>(withNewState state: S, resources: S.StateResources) -> Self {
-        Self(wrapped: .failureState(stateStorage: StateStorage(state: state, resources: resources)))
+        Self(wrapped: .failureState(storage: AnyStateMachineStateStorage(state: state, resources: resources)))
     }
 
     public static func failed<S: StateMachineState<State.StateID>>(withNewState state: S) -> Self where S.StateResources == Never {
-        Self(wrapped: .failureState(stateStorage: StateStorage(state: state)))
+        Self(wrapped: .failureState(storage: AnyStateMachineStateStorage(state: state)))
     }
 }
 
@@ -43,8 +42,8 @@ extension StateMachineTransitionCompletion {
     enum Wrapped {
         case completed(resources: State.StateResources)
         case failed
-        case failureState(stateStorage: StateStorage)
+        case failureState(storage: AnyStateMachineStateStorage<State.StateID>)
     }
 }
 
-extension StateMachineTransitionCompletion.Wrapped: Sendable where State.StateResources: Sendable, StateStorage: Sendable { }
+extension StateMachineTransitionCompletion.Wrapped: Sendable where State.StateResources: Sendable { }

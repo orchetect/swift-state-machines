@@ -35,3 +35,12 @@ extension StateMachineStateStorageProtocol {
         return (resources as! State.StateResources)
     }
 }
+
+// MARK: - Internal
+
+extension StateMachineStateStorageProtocol {
+    func update(from anyStorage: AnyStateMachineStateStorage<StateID>) {
+        state = anyStorage.state
+        resources = anyStorage.resourcesClosure()
+    }
+}

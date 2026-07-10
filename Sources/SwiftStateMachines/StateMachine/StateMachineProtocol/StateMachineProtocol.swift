@@ -17,3 +17,11 @@ public protocol StateMachineProtocol<StateID>: ~Copyable where StateStorage.Stat
 
     func update(stateStorage: consuming StateStorage)
 }
+
+// MARK: - Internal
+
+extension StateMachineProtocol where Self: ~Copyable {
+    func _update(stateStorage: AnyStateMachineStateStorage<StateID>) {
+        self.stateStorage.update(from: stateStorage)
+    }
+}
