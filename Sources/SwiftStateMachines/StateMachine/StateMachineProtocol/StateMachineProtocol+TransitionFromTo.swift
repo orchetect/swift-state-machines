@@ -34,6 +34,7 @@ extension StateMachineProtocol where Self: ~Copyable {
         case .failed:
             return .failed
         case let .failureState(storage: failureStorage):
+            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
             _update(stateStorage: failureStorage)
             return .failed
         case .skipped:
@@ -78,6 +79,7 @@ extension StateMachineProtocol where Self: ~Copyable {
         case .failed:
             return .failed
         case let .failureState(storage: failureStorage):
+            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
             _update(stateStorage: failureStorage)
             return .failed
         case .skipped:
