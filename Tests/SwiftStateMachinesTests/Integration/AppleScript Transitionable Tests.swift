@@ -1,5 +1,5 @@
 //
-//  AppleScript TransitionAutonomously Tests.swift
+//  AppleScript Transitionable Tests.swift
 //  Dipper © 2023-2026 Existential Audio
 //
 
@@ -9,7 +9,7 @@ import Foundation
 import SwiftStateMachines
 import Testing
 
-@Suite struct AppleScript_TransitionAutonomously_Tests {
+@Suite struct AppleScript_Transitionable_Tests {
     @Test
     func checkAppleScript() async throws {
         let script = AppleScript(source: #"tell application "Finder" to get version"#)
@@ -114,7 +114,7 @@ extension AppleScript {
     }
 }
 
-extension AppleScript.SyntaxCheckedState: AutonomousStateMachineState {
+extension AppleScript.SyntaxCheckedState: TransitionableStateMachineState {
     fileprivate typealias TransitionFailure = AppleScriptError
 
     fileprivate func transition<StateMachine: StateMachineProtocol<StateID> & ~Copyable>(
@@ -142,7 +142,7 @@ extension AppleScript {
     }
 }
 
-extension AppleScript.CompiledState: AutonomousStateMachineState {
+extension AppleScript.CompiledState: TransitionableStateMachineState {
     fileprivate typealias TransitionFailure = AppleScriptError
 
     fileprivate func transition<StateMachine: StateMachineProtocol<StateID> & ~Copyable>(
@@ -172,7 +172,7 @@ extension AppleScript {
     }
 }
 
-extension AppleScript.ExecutedState: AutonomousStateMachineState {
+extension AppleScript.ExecutedState: TransitionableStateMachineState {
     fileprivate typealias TransitionFailure = AppleScriptError
 
     fileprivate func transition<StateMachine: StateMachineProtocol<StateID> & ~Copyable>(
