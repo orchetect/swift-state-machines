@@ -17,7 +17,7 @@ public protocol StateMachineStateStorageProtocol<StateID>: AnyObject {
 // MARK: - Non-Async
 
 extension StateMachineStateStorageProtocol {
-    func withResources<State: StateMachineState<StateID>, T, E>(
+    func withResources<State: StateMachineState<StateID>, T: ~Copyable, E>(
         for expectedState: State,
         _ block: (_ resources: inout State.StateResources) throws(E) -> T,
         wrongState failureBlock: () throws(E) -> T
