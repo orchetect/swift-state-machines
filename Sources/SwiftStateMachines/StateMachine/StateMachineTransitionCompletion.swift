@@ -20,7 +20,11 @@ extension StateMachineTransitionCompletion: Sendable where Wrapped: Sendable { }
 
 extension StateMachineTransitionCompletion {
     public static func completed(with resources: State.StateResources) -> Self {
-        Self(wrapped: .completed(resources: resources))
+        Self(wrapped: .completed(resources: AnyStateMachineResources(resources: resources)))
+    }
+
+    public static func completed() -> Self where State.StateResources == Never {
+        Self(wrapped: .completed(resources: AnyStateMachineResources()))
     }
 
     public static var failed: Self {
@@ -44,7 +48,7 @@ extension StateMachineTransitionCompletion {
 
 extension StateMachineTransitionCompletion {
     enum Wrapped {
-        case completed(resources: State.StateResources)
+        case completed(resources: AnyStateMachineResources<State>)
         case failed
         case failureState(storage: AnyStateMachineStateStorage<State.StateID>)
         case skipped

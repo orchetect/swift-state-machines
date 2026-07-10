@@ -1,5 +1,5 @@
 //
-//  StateMachineProtocol+TransitionAutonomously.swift
+//  StateMachineProtocol+Transitionable.swift
 //  SwiftStateMachines • https://github.com/orchetect/swift-state-machines
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
@@ -10,13 +10,14 @@ extension StateMachineProtocol where Self: ~Copyable {
     // MARK: Current State != Current State ID
 
     @discardableResult
-    public func transition<NewState: StateMachineState<StateID>>(
+    public func transition<NewState: TransitionableStateMachineState<StateID>>(
         to newState: consuming NewState
-    ) throws(NewState.TransitionFailure) -> StateMachineResourcedTransitionResult<NewState> where NewState: AutonomousStateMachineState {
+    ) throws(NewState.TransitionFailure) -> StateMachineResourcedTransitionResult<NewState> {
         let completion = try newState.transition(in: self)
 
         switch completion.wrapped {
-        case let .completed(resources: newResources):
+        case let .completed(resources: anyResources):
+            let newResources = anyResources.resourcesClosure()
             update(stateStorage: StateStorage(state: newState, resources: newResources))
             return .completed(resources: newResources)
         case .failed:
@@ -30,14 +31,14 @@ extension StateMachineProtocol where Self: ~Copyable {
     }
 
     @discardableResult
-    public func transition<NewState: StateMachineState<StateID>>(
+    public func transition<NewState: TransitionableStateMachineState<StateID>>(
         to newState: consuming NewState
-    ) throws(NewState.TransitionFailure) -> StateMachineTransitionResult where NewState: AutonomousStateMachineState, NewState.StateResources == Never {
+    ) throws(NewState.TransitionFailure) -> StateMachineTransitionResult where NewState.StateResources == Never {
         let completion = try newState.transition(in: self)
 
         switch completion.wrapped {
-        case let .completed(resources: newResources):
-            update(stateStorage: StateStorage(state: newState, resources: newResources))
+        case .completed(resources: _):
+            update(stateStorage: StateStorage(state: newState))
             return .completed
         case .failed:
             return .failed
@@ -52,13 +53,14 @@ extension StateMachineProtocol where Self: ~Copyable {
     // MARK: Current State == Current State ID
 
     @_disfavoredOverload @discardableResult
-    public func transition<NewState: StateMachineState<StateID>>(
+    public func transition<NewState: TransitionableStateMachineState<StateID>>(
         to newState: consuming NewState
-    ) throws(NewState.TransitionFailure) -> StateMachineResourcedTransitionResult<NewState> where NewState: AutonomousStateMachineState, NewState == NewState.StateID {
+    ) throws(NewState.TransitionFailure) -> StateMachineResourcedTransitionResult<NewState> where NewState == NewState.StateID {
         let completion = try newState.transition(in: self)
 
         switch completion.wrapped {
-        case let .completed(resources: newResources):
+        case let .completed(resources: anyResources):
+            let newResources = anyResources.resourcesClosure()
             update(stateStorage: StateStorage(state: newState, resources: newResources))
             return .completed(resources: newResources)
         case .failed:
@@ -72,14 +74,14 @@ extension StateMachineProtocol where Self: ~Copyable {
     }
 
     @_disfavoredOverload @discardableResult
-    public func transition<NewState: StateMachineState<StateID>>(
+    public func transition<NewState: TransitionableStateMachineState<StateID>>(
         to newState: consuming NewState
-    ) throws(NewState.TransitionFailure) -> StateMachineTransitionResult where NewState: AutonomousStateMachineState, NewState == NewState.StateID, NewState.StateResources == Never {
+    ) throws(NewState.TransitionFailure) -> StateMachineTransitionResult where NewState == NewState.StateID, NewState.StateResources == Never {
         let completion = try newState.transition(in: self)
 
         switch completion.wrapped {
-        case let .completed(resources: newResources):
-            update(stateStorage: StateStorage(state: newState, resources: newResources))
+        case .completed(resources: _):
+            update(stateStorage: StateStorage(state: newState))
             return .completed
         case .failed:
             return .failed

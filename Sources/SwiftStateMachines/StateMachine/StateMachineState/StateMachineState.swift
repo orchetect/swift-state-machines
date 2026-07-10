@@ -12,3 +12,11 @@ public protocol StateMachineState<StateID>: Copyable {
 
     func canTransition(to newState: borrowing some StateMachineState<StateID>) -> Bool
 }
+
+// MARK: - Default Implementation
+
+extension StateMachineState {
+    public func canTransition(to newState: some StateMachineState<StateID>) -> Bool {
+        true
+    }
+}

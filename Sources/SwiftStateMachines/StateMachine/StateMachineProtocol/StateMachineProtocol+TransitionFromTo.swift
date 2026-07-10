@@ -27,7 +27,8 @@ extension StateMachineProtocol where Self: ~Copyable {
         }
 
         switch completion.wrapped {
-        case let .completed(resources: newResources):
+        case let .completed(resources: anyResources):
+            let newResources = anyResources.resourcesClosure()
             update(stateStorage: StateStorage(state: newState, resources: newResources))
             return .completed(resources: newResources)
         case .failed:
@@ -70,7 +71,8 @@ extension StateMachineProtocol where Self: ~Copyable {
         }
 
         switch completion.wrapped {
-        case let .completed(resources: newResources):
+        case let .completed(resources: anyResources):
+            let newResources = anyResources.resourcesClosure()
             update(stateStorage: StateStorage(state: newState, resources: newResources))
             return .completed(resources: newResources)
         case .failed:
