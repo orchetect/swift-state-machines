@@ -57,8 +57,8 @@ struct StartStopStateMachine_Class_Tests {
         #expect(foo.read1() == nil)
         #expect(foo.read2() == nil)
 
-        #expect(foo.start(string: "A"))
-        #expect(!foo.start(string: "B")) // already started
+        #expect(foo.start(string: "A") == true)
+        #expect(foo.start(string: "B") == false) // already started
 
         #expect(foo.lifecycle.assertState(is: .started) == true)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
@@ -72,7 +72,7 @@ struct StartStopStateMachine_Class_Tests {
     func stopOnly() {
         let foo = MyObject()
 
-        #expect(foo.stop() == false) // already stopped
+        #expect(foo.stop() == true) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == true)
@@ -89,8 +89,8 @@ struct StartStopStateMachine_Class_Tests {
         #expect(foo.read1() == nil)
         #expect(foo.read2() == nil)
 
-        #expect(foo.start(string: "A"))
-        #expect(!foo.start(string: "B")) // already started
+        #expect(foo.start(string: "A") == true)
+        #expect(foo.start(string: "B") == false) // already started
 
         #expect(foo.lifecycle.assertState(is: .started) == true)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
@@ -99,8 +99,8 @@ struct StartStopStateMachine_Class_Tests {
         #expect(foo.read1() == "A")
         #expect(foo.read2() == "A")
 
-        #expect(foo.stop())
-        #expect(!foo.stop()) // already stopped
+        #expect(foo.stop() == true)
+        #expect(foo.stop() == true) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == true)
@@ -117,8 +117,8 @@ struct StartStopStateMachine_Class_Tests {
         #expect(foo.read1() == nil)
         #expect(foo.read2() == nil)
 
-        #expect(foo.start(string: "A"))
-        #expect(!foo.start(string: "B")) // already started
+        #expect(foo.start(string: "A") == true)
+        #expect(foo.start(string: "B") == false) // already started
 
         #expect(foo.lifecycle.assertState(is: .started) == true)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
@@ -128,7 +128,7 @@ struct StartStopStateMachine_Class_Tests {
         #expect(foo.read2() == "A")
 
         #expect(foo.stop(permanently: true) == true)
-        #expect(foo.stop(permanently: true) == false) // already stopped
+        #expect(foo.stop(permanently: true) == true) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)

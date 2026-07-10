@@ -37,7 +37,7 @@ struct StateMachine_Enum_Tests {
     func transition() {
         let sm = StateMachine<MyState>(initialState: .one)
 
-        #expect(sm.transition(to: .two) == true)
+        #expect(sm.transition(to: .two) == .completed)
 
         #expect(sm.assertState(is: .one) == false)
         #expect(sm.assertState(is: .two) == true)

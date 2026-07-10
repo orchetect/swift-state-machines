@@ -30,7 +30,7 @@ struct StateMachine_Type_Conformance_Tests {
     func transition() {
         let sm = StateMachine<Int>(initialState: 1)
 
-        #expect(sm.transition(to: 2) == true)
+        #expect(sm.transition(to: 2) == .completed)
 
         #expect(sm.assertState(is: 1) == false)
         #expect(sm.assertState(is: 2) == true)

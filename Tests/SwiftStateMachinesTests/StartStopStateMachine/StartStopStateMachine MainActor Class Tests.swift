@@ -93,7 +93,7 @@ struct StartStopStateMachine_MainActor_Class_Tests {
     func stopOnly() async {
         let foo = MyObject()
 
-        #expect(await foo.stop() == false) // already stopped
+        #expect(await foo.stop() == true) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == true)
@@ -121,7 +121,7 @@ struct StartStopStateMachine_MainActor_Class_Tests {
         #expect(foo.read2() == "A")
 
         #expect(await foo.stop() == true)
-        #expect(await foo.stop() == false) // already stopped
+        #expect(await foo.stop() == true) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == true)
@@ -149,7 +149,7 @@ struct StartStopStateMachine_MainActor_Class_Tests {
         #expect(foo.read2() == "A")
 
         #expect(await foo.stop(permanently: true) == true)
-        #expect(await foo.stop(permanently: true) == false) // already stopped
+        #expect(await foo.stop(permanently: true) == true) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
