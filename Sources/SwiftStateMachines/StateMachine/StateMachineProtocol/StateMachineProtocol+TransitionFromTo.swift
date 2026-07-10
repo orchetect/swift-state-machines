@@ -1,5 +1,5 @@
 //
-//  StateMachineProtocol+TransitionWithResources.swift
+//  StateMachineProtocol+TransitionFromTo.swift
 //  SwiftStateMachines • https://github.com/orchetect/swift-state-machines
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
