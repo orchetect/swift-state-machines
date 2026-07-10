@@ -95,9 +95,3 @@ extension StateMachineProtocol where Self: ~Copyable {
         .failed
     }
 }
-
-// MARK: - Async
-
-extension StateMachineProtocol where Self: ~Copyable {
-    #warning("TODO: add async variants")
-}

@@ -4,7 +4,7 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public protocol AsyncTransitionableStateMachineState<StateID>: TransitionableStateMachineState, Copyable {
+public protocol AsyncTransitionableStateMachineState<StateID>: TransitionableStateMachineState, Copyable, SendableMetatype {
     func transition<StateMachine: StateMachineProtocol<StateID> & ~Copyable>(
         in stateMachine: borrowing StateMachine
     ) async throws(TransitionFailure) -> StateMachineTransitionCompletion<Self>

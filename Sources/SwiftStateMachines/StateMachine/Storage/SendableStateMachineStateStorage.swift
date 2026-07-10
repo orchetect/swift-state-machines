@@ -58,7 +58,7 @@ public final class SendableStateMachineStateStorage<StateID: Hashable & Sendable
 // MARK: - Async
 
 extension SendableStateMachineStateStorage {
-    func withResources<State: StateMachineState<StateID>, T, E>(
+    func withResources<State: StateMachineState<StateID>, T: ~Copyable, E>(
         for expectedState: State,
         _ block: sending (_ resources: inout State.StateResources) async throws(E) -> T,
         wrongState failureBlock: sending () async throws(E) -> T

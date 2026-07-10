@@ -4,7 +4,7 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public protocol TransitionableStateMachineState<StateID>: StateMachineState, Copyable {
+public protocol TransitionableStateMachineState<StateID>: StateMachineState, Copyable, SendableMetatype {
     associatedtype TransitionFailure: Error
 
     func transition<StateMachine: StateMachineProtocol<StateID> & ~Copyable>(

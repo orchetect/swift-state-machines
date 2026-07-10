@@ -4,7 +4,7 @@
 //  © 2026 Steffan Andrews • Licensed under MIT License
 //
 
-public protocol StateMachineState<StateID>: Copyable {
+public protocol StateMachineState<StateID>: Copyable, SendableMetatype {
     associatedtype StateID: Hashable, Sendable, Copyable
     var stateID: StateID { get }
 
