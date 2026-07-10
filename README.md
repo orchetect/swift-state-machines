@@ -6,6 +6,12 @@ General-purpose state machine types for Swift.
 
 This package aims to offer flexible, modern, thread-safe abstractions.
 
+> [!NOTE]
+>
+> For the time being, this library is under active development and is not considered API-stable.
+>
+> Prior to release 1.0.0, refactors and new features will likely introduce code-breaking changes along the way.
+
 ## Getting Started
 
 This package provides building blocks to define your own set of states, conditional transition logic, and abstractions to serialize transition changes so that a overlapping calls to the same transition are not repeated.
