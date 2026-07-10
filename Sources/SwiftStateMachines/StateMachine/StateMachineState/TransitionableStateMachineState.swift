@@ -11,3 +11,13 @@ public protocol TransitionableStateMachineState<StateID>: StateMachineState, Cop
         in stateMachine: borrowing StateMachine
     ) throws(TransitionFailure) -> StateMachineTransitionCompletion<Self>
 }
+
+// MARK: - Default Implementation
+
+extension TransitionableStateMachineState {
+    public func transition<StateMachine: StateMachineProtocol<StateID> & ~Copyable>(
+        in stateMachine: borrowing StateMachine
+    ) async throws(TransitionFailure) -> StateMachineTransitionCompletion<Self> {
+        try transition(in: stateMachine)
+    }
+}
