@@ -23,7 +23,7 @@ extension StateMachineTransitionCompletion {
         Self(wrapped: .completed(resources: resources))
     }
 
-    public static func failed() -> Self {
+    public static var failed: Self {
         Self(wrapped: .failed)
     }
 
@@ -34,6 +34,10 @@ extension StateMachineTransitionCompletion {
     public static func failed<S: StateMachineState<State.StateID>>(withNewState state: S) -> Self where S.StateResources == Never {
         Self(wrapped: .failureState(storage: AnyStateMachineStateStorage(state: state)))
     }
+
+    public static var skipped: Self {
+        Self(wrapped: .skipped)
+    }
 }
 
 // MARK: - Wrapped
@@ -43,6 +47,7 @@ extension StateMachineTransitionCompletion {
         case completed(resources: State.StateResources)
         case failed
         case failureState(storage: AnyStateMachineStateStorage<State.StateID>)
+        case skipped
     }
 }
 

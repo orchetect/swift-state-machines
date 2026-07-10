@@ -29,7 +29,7 @@ extension StartStopStateMachine {
         stateMachine.withLock { stateMachine in
             stateMachine.transition(to: .started()) {
                 resources()
-            }
+            }.genericResult != .failed
         } lockFailure: {
             false
         }
@@ -41,7 +41,7 @@ extension StartStopStateMachine {
     ) -> Bool where StartedResources == Never {
         stateMachine.withLock { stateMachine in
             block()
-            return stateMachine.transition(to: .started())
+            return stateMachine.transition(to: .started()) != .failed
         } lockFailure: {
             false
         }
@@ -62,9 +62,10 @@ extension StartStopStateMachine {
                 }
             }
 
-            return isPermanent
+            let result = isPermanent
                 ? stateMachine.transition(to: .stoppedPermanently())
                 : stateMachine.transition(to: .stopped())
+            return result != .failed
         } lockFailure: {
             false
         }
@@ -78,9 +79,10 @@ extension StartStopStateMachine {
         stateMachine.withLock { stateMachine in
             block()
 
-            return isPermanent
+            let result = isPermanent
                 ? stateMachine.transition(to: .stoppedPermanently())
                 : stateMachine.transition(to: .stopped())
+            return result != .failed
         } lockFailure: {
             false
         }
@@ -99,7 +101,7 @@ extension StartStopStateMachine {
 
         return await stateMachine.transition(to: .started()) {
             await resources()
-        }
+        }.genericResult != .failed
     }
 
     @_disfavoredOverload @discardableResult
@@ -111,7 +113,7 @@ extension StartStopStateMachine {
 
         return await stateMachine.transition(to: .started()) {
             await resources()
-        }
+        }.genericResult != .failed
     }
 
     @discardableResult
@@ -123,7 +125,7 @@ extension StartStopStateMachine {
 
         await block()
 
-        return stateMachine.transition(to: .started())
+        return stateMachine.transition(to: .started()) != .failed
 
     }
 
@@ -136,7 +138,7 @@ extension StartStopStateMachine {
 
         await block()
 
-        return stateMachine.transition(to: .started())
+        return stateMachine.transition(to: .started()) != .failed
 
     }
 
@@ -154,9 +156,10 @@ extension StartStopStateMachine {
             }
         }
 
-        return isPermanent
+        let result = isPermanent
             ? stateMachine.transition(to: .stoppedPermanently())
             : stateMachine.transition(to: .stopped())
+        return result != .failed
     }
 
     @discardableResult
@@ -169,9 +172,10 @@ extension StartStopStateMachine {
 
         await block()
 
-        return isPermanent
+        let result = isPermanent
             ? stateMachine.transition(to: .stoppedPermanently())
             : stateMachine.transition(to: .stopped())
+        return result != .failed
     }
 
     @discardableResult
@@ -184,9 +188,10 @@ extension StartStopStateMachine {
 
         await block()
 
-        return isPermanent
+        let result = isPermanent
             ? stateMachine.transition(to: .stoppedPermanently())
             : stateMachine.transition(to: .stopped())
+        return result != .failed
     }
 }
 

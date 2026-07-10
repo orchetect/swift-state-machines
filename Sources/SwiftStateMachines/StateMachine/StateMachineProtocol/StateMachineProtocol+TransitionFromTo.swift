@@ -14,27 +14,29 @@ extension StateMachineProtocol where Self: ~Copyable {
         from currentState: consuming CurrentState,
         to newState: NewState,
         resources: (_ currentResources: inout CurrentState.StateResources) throws(E) -> StateMachineTransitionCompletion<NewState>
-    ) throws(E) -> Bool {
+    ) throws(E) -> StateMachineResourcedTransitionResult<NewState> {
         typealias Completion = StateMachineTransitionCompletion<NewState>
 
-        guard stateStorage.state.canTransition(to: newState) else { return false }
+        guard stateStorage.state.canTransition(to: newState) else { return .failed }
         guard let completion: Completion = try withResources(for: currentState, { currentResources throws(E) in
             try resources(&currentResources)
         }, wrongState: { () throws(E) in
             nil
         }) else {
-            return false
+            return .failed
         }
 
         switch completion.wrapped {
         case let .completed(resources: newResources):
             update(stateStorage: StateStorage(state: newState, resources: newResources))
-            return true
+            return .completed(resources: newResources)
         case .failed:
-            return false
+            return .failed
         case let .failureState(storage: failureStorage):
             _update(stateStorage: failureStorage)
-            return false
+            return .failed
+        case .skipped:
+            return .failed
         }
     }
 
@@ -44,8 +46,8 @@ extension StateMachineProtocol where Self: ~Copyable {
         from currentState: consuming CurrentState,
         to newState: NewState,
         resources: (_ currentResources: inout CurrentState.StateResources) throws(E) -> StateMachineTransitionCompletion<NewState>
-    ) throws(E) -> Bool where CurrentState.StateResources == Never {
-        false
+    ) throws(E) -> StateMachineResourcedTransitionResult<NewState> where CurrentState.StateResources == Never {
+        .failed
     }
 
     // MARK: Current State == Current State ID
@@ -55,27 +57,29 @@ extension StateMachineProtocol where Self: ~Copyable {
         from currentState: consuming CurrentState,
         to newState: NewState.StateID,
         resources: (_ currentResources: inout CurrentState.StateResources) throws(E) -> StateMachineTransitionCompletion<NewState>
-    ) throws(E) -> Bool where NewState == StateID {
+    ) throws(E) -> StateMachineResourcedTransitionResult<NewState> where NewState == StateID {
         typealias Completion = StateMachineTransitionCompletion<NewState>
 
-        guard stateStorage.state.canTransition(to: newState) else { return false }
+        guard stateStorage.state.canTransition(to: newState) else { return .failed }
         guard let completion: Completion = try withResources(for: currentState, { currentResources throws(E) in
             try resources(&currentResources)
         }, wrongState: { () throws(E) in
             nil
         }) else {
-            return false
+            return .failed
         }
 
         switch completion.wrapped {
         case let .completed(resources: newResources):
             update(stateStorage: StateStorage(state: newState, resources: newResources))
-            return true
+            return .completed(resources: newResources)
         case .failed:
-            return false
+            return .failed
         case let .failureState(storage: failureStorage):
             _update(stateStorage: failureStorage)
-            return false
+            return .failed
+        case .skipped:
+            return .failed
         }
     }
 
@@ -85,8 +89,8 @@ extension StateMachineProtocol where Self: ~Copyable {
         from currentState: consuming CurrentState,
         to newState: NewState.StateID,
         resources: (_ currentResources: inout CurrentState.StateResources) throws(E) -> StateMachineTransitionCompletion<NewState>
-    ) throws(E) -> Bool where NewState == StateID, CurrentState.StateResources == Never {
-        false
+    ) throws(E) -> StateMachineResourcedTransitionResult<NewState> where NewState == StateID, CurrentState.StateResources == Never {
+        .failed
     }
 }
 

@@ -29,10 +29,15 @@ extension StartStopActorStateMachine {
     public func start(
         resources: sending @escaping @isolated(any) () async -> StartedStateMachineState<StartedResources>.StateResources
     ) async -> Bool {
-        await stateMachine.withActor { stateMachine in
+        let result = await stateMachine.withActor { stateMachine in
             await stateMachine.transition(to: .started()) {
                 await resources()
             }
+        }
+
+        return switch result {
+        case .completed, .skipped: true
+        case .failed: false
         }
     }
 
@@ -40,9 +45,14 @@ extension StartStopActorStateMachine {
     public func start(
         _ block: sending @escaping @isolated(any) () async -> Void
     ) async -> Bool where StartedResources == Never {
-        await stateMachine.withActor { stateMachine in
+        let result = await stateMachine.withActor { stateMachine in
             await block()
             return stateMachine.transition(to: .started())
+        }
+
+        return switch result {
+        case .completed, .skipped: true
+        case .failed: false
         }
     }
 
@@ -51,7 +61,7 @@ extension StartStopActorStateMachine {
         permanently isPermanent: Bool = false,
         resourcesTeardown: sending (@isolated(any) (_ resources: inout StartedState.StateResources) async -> Void)? = nil
     ) async -> Bool {
-        await stateMachine.withActor { [resourcesTeardown] stateMachine in
+        let result = await stateMachine.withActor { [resourcesTeardown] stateMachine in
             if let resourcesTeardown {
                 if var resources = stateMachine.resources(for: .started()) {
                     await resourcesTeardown(&resources)
@@ -62,6 +72,11 @@ extension StartStopActorStateMachine {
                 ? stateMachine.transition(to: .stoppedPermanently())
                 : stateMachine.transition(to: .stopped())
         }
+
+        return switch result {
+        case .completed, .skipped: true
+        case .failed: false
+        }
     }
 
     @discardableResult
@@ -69,12 +84,17 @@ extension StartStopActorStateMachine {
         permanently isPermanent: Bool = false,
         _ block: sending @escaping @isolated(any) () async -> Void
     ) async -> Bool where StartedResources == Never {
-        await stateMachine.withActor { stateMachine in
+        let result = await stateMachine.withActor { stateMachine in
             await block()
 
             return isPermanent
                 ? stateMachine.transition(to: .stoppedPermanently())
                 : stateMachine.transition(to: .stopped())
+        }
+
+        return switch result {
+        case .completed, .skipped: true
+        case .failed: false
         }
     }
 }
