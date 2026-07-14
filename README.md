@@ -1,4 +1,4 @@
-# Swift State Machines
+# SwiftStateMachines
 
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Forchetect%2Fswift-state-machines%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/orchetect/swift-state-machines) [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Forchetect%2Fswift-state-machines%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/orchetect/swift-state-machines) [![License: MIT](http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat)](https://github.com/orchetect/swift-state-machines/blob/main/LICENSE)
 
@@ -12,9 +12,11 @@ This package aims to offer flexible, modern, thread-safe abstractions.
 >
 > Prior to release 1.0.0, refactors and new features will likely introduce code-breaking changes along the way.
 
-## Getting Started
+## Overview
 
 This package provides building blocks to define your own set of states, conditional transition logic, and abstractions to serialize transition changes so that a overlapping calls to the same transition are not repeated.
+
+## Start/Stop State Machine
 
 One of the high-level abstractions available combines all of these building blocks into a general-purpose, ready-to-use object lifecycle manager called `StartStopStateMachine`.
 
@@ -101,30 +103,27 @@ extension MyService {
 
 The library includes many more methods and types to provide maximum flexibility to fit your implementation requirements.
 
-## Installation: Swift Package Manager (SPM)
+## Getting Started
 
-### Swift Package Manager (SPM)
+This library is available as a Swift Package Manager (SPM) package.
 
-To add this package to an Xcode app project, use:
+1. Add the **swift-state-machines** repo as a dependency.
 
- `https://github.com/orchetect/swift-state-machines` as the URL.
+   ```swift
+   .package(url: "https://github.com/orchetect/swift-state-machines", from: "0.3.0")
+   ```
 
-To add this package to a Swift package, add the dependency to your package and target in Package.swift:
+2. Add **SwiftStateMachines** to your target.
 
-```swift
-let package = Package(
-    dependencies: [
-        .package(url: "https://github.com/orchetect/swift-state-machines", from: "0.1.0")
-    ],
-    targets: [
-        .target(
-            dependencies: [
-                .product(name: "SwiftStateMachines", package: "swift-state-machines")
-            ]
-        )
-    ]
-)
-```
+   ```swift
+   .product(name: "SwiftStateMachines", package: "swift-state-machines")
+   ```
+
+3. Import **SwiftStateMachines** to use it.
+
+   ```swift
+   import SwiftStateMachines
+   ```
 
 ## Documentation
 
