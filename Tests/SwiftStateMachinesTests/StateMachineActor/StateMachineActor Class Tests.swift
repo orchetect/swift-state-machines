@@ -22,7 +22,7 @@ struct StateMachineActor_Class_Tests {
             await lifecycle.withActor { stateMachine in
                 lifecycle.transition(to: .started)
                 Task { @MainActor in values.append("start") }
-                usleep(UInt32(0.1 * Double(USEC_PER_SEC)))
+                sleep(0.1)
                 return true
             }
         }
@@ -31,7 +31,7 @@ struct StateMachineActor_Class_Tests {
             await lifecycle.withActor { stateMachine in
                 stateMachine.transition(to: .stopped)
                 Task { @MainActor in values.append("stop") }
-                usleep(UInt32(0.1 * Double(USEC_PER_SEC)))
+                sleep(0.1)
                 return true
             }
         }

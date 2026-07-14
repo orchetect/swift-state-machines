@@ -26,7 +26,7 @@ struct SerialStateMachine_MainActor_Class_Async_Tests {
                 stateMachine.transition(to: .started)
                 let startValue = await startValue()
                 await MainActor.run { values.append(startValue) }
-                usleep(UInt32(0.1 * Double(USEC_PER_SEC)))
+                sleep(0.1)
                 return true
             } lockFailure: {
                 Issue.record("Lock failed")
@@ -44,7 +44,7 @@ struct SerialStateMachine_MainActor_Class_Async_Tests {
                 stateMachine.transition(to: .stopped)
                 let stopValue = await stopValue()
                 await MainActor.run { values.append(stopValue) }
-                usleep(UInt32(0.1 * Double(USEC_PER_SEC)))
+                sleep(0.1)
                 return true
             } lockFailure: {
                 Issue.record("Lock failed")
