@@ -15,13 +15,13 @@ struct StartStopStateMachine_Class_Tests {
 
         init() { }
 
-        public func start(string: String) -> Bool {
+        public func start(string: String) -> StateMachineTransitionResult {
             lifecycle.start {
                 string
             }
         }
 
-        public func stop(permanently: Bool = false) -> Bool {
+        public func stop(permanently: Bool = false) -> StateMachineTransitionResult {
             lifecycle.stop(permanently: permanently, resourcesTeardown: { _ in })
         }
 
@@ -57,8 +57,8 @@ struct StartStopStateMachine_Class_Tests {
         #expect(foo.read1() == nil)
         #expect(foo.read2() == nil)
 
-        #expect(foo.start(string: "A") == true)
-        #expect(foo.start(string: "B") == false) // already started
+        #expect(foo.start(string: "A") == .completed)
+        #expect(foo.start(string: "B") == .skipped) // already started
 
         #expect(foo.lifecycle.assertState(is: .started) == true)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
@@ -72,7 +72,7 @@ struct StartStopStateMachine_Class_Tests {
     func stopOnly() {
         let foo = MyObject()
 
-        #expect(foo.stop() == true) // already stopped
+        #expect(foo.stop() == .skipped) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == true)
@@ -89,8 +89,8 @@ struct StartStopStateMachine_Class_Tests {
         #expect(foo.read1() == nil)
         #expect(foo.read2() == nil)
 
-        #expect(foo.start(string: "A") == true)
-        #expect(foo.start(string: "B") == false) // already started
+        #expect(foo.start(string: "A") == .completed)
+        #expect(foo.start(string: "B") == .skipped) // already started
 
         #expect(foo.lifecycle.assertState(is: .started) == true)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
@@ -99,8 +99,8 @@ struct StartStopStateMachine_Class_Tests {
         #expect(foo.read1() == "A")
         #expect(foo.read2() == "A")
 
-        #expect(foo.stop() == true)
-        #expect(foo.stop() == true) // already stopped
+        #expect(foo.stop() == .completed)
+        #expect(foo.stop() == .skipped) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == true)
@@ -117,8 +117,8 @@ struct StartStopStateMachine_Class_Tests {
         #expect(foo.read1() == nil)
         #expect(foo.read2() == nil)
 
-        #expect(foo.start(string: "A") == true)
-        #expect(foo.start(string: "B") == false) // already started
+        #expect(foo.start(string: "A") == .completed)
+        #expect(foo.start(string: "B") == .skipped) // already started
 
         #expect(foo.lifecycle.assertState(is: .started) == true)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
@@ -127,8 +127,8 @@ struct StartStopStateMachine_Class_Tests {
         #expect(foo.read1() == "A")
         #expect(foo.read2() == "A")
 
-        #expect(foo.stop(permanently: true) == true)
-        #expect(foo.stop(permanently: true) == true) // already stopped
+        #expect(foo.stop(permanently: true) == .completed)
+        #expect(foo.stop(permanently: true) == .skipped) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
@@ -138,7 +138,7 @@ struct StartStopStateMachine_Class_Tests {
         #expect(foo.read2() == nil)
 
         // attempt to restart -- not allowed after permanent stop
-        #expect(foo.start(string: "C") == false)
+        #expect(foo.start(string: "C") == .failed)
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)

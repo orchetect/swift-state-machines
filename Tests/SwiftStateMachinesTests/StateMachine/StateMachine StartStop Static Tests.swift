@@ -68,7 +68,7 @@ struct StateMachine_StartStop_Static_Tests {
         #expect(sm.transition(to: .started()) { 2 } == .completed(resources: 2))
         #expect(sm.assertState(is: .started) == true)
         #expect(sm.resources(for: .started()) == 2)
-        #expect(sm.transition(to: .started()) { 3 } == .failed) // already started
+        #expect(sm.transition(to: .started()) { 3 } == .skipped) // already started
         #expect(sm.resources(for: .started()) == 2) // unchanged
 
         // stop

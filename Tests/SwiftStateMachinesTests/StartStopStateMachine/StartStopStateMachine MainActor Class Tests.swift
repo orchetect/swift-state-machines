@@ -30,7 +30,7 @@ struct StartStopStateMachine_MainActor_Class_Tests {
         init() { }
 
         @concurrent
-        public func start(string: String) async -> Bool {
+        public func start(string: String) async -> StateMachineTransitionResult {
             await lifecycle.start {
                 await subObject.setValue(getValue() + 1)
                 return string
@@ -38,7 +38,7 @@ struct StartStopStateMachine_MainActor_Class_Tests {
         }
 
         @concurrent
-        public func stop(permanently: Bool = false) async -> Bool {
+        public func stop(permanently: Bool = false) async -> StateMachineTransitionResult {
             lifecycle.stop(permanently: permanently) { resources in
                 resources = ""
             }
@@ -78,8 +78,8 @@ struct StartStopStateMachine_MainActor_Class_Tests {
         #expect(await foo.read1() == nil)
         #expect(foo.read2() == nil)
 
-        #expect(await foo.start(string: "A") == true)
-        #expect(await foo.start(string: "B") == false) // already started
+        #expect(await foo.start(string: "A") == .completed)
+        #expect(await foo.start(string: "B") == .skipped) // already started
 
         #expect(foo.lifecycle.assertState(is: .started) == true)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
@@ -93,7 +93,7 @@ struct StartStopStateMachine_MainActor_Class_Tests {
     func stopOnly() async {
         let foo = MyObject()
 
-        #expect(await foo.stop() == true) // already stopped
+        #expect(await foo.stop() == .skipped) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == true)
@@ -110,8 +110,8 @@ struct StartStopStateMachine_MainActor_Class_Tests {
         #expect(await foo.read1() == nil)
         #expect(foo.read2() == nil)
 
-        #expect(await foo.start(string: "A") == true)
-        #expect(await foo.start(string: "B") == false) // already started
+        #expect(await foo.start(string: "A") == .completed)
+        #expect(await foo.start(string: "B") == .skipped) // already started
 
         #expect(foo.lifecycle.assertState(is: .started) == true)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
@@ -120,8 +120,8 @@ struct StartStopStateMachine_MainActor_Class_Tests {
         #expect(await foo.read1() == "A")
         #expect(foo.read2() == "A")
 
-        #expect(await foo.stop() == true)
-        #expect(await foo.stop() == true) // already stopped
+        #expect(await foo.stop() == .completed)
+        #expect(await foo.stop() == .skipped) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == true)
@@ -138,8 +138,8 @@ struct StartStopStateMachine_MainActor_Class_Tests {
         #expect(await foo.read1() == nil)
         #expect(foo.read2() == nil)
 
-        #expect(await foo.start(string: "A") == true)
-        #expect(await foo.start(string: "B") == false) // already started
+        #expect(await foo.start(string: "A") == .completed)
+        #expect(await foo.start(string: "B") == .skipped) // already started
 
         #expect(foo.lifecycle.assertState(is: .started) == true)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
@@ -148,8 +148,8 @@ struct StartStopStateMachine_MainActor_Class_Tests {
         #expect(await foo.read1() == "A")
         #expect(foo.read2() == "A")
 
-        #expect(await foo.stop(permanently: true) == true)
-        #expect(await foo.stop(permanently: true) == true) // already stopped
+        #expect(await foo.stop(permanently: true) == .completed)
+        #expect(await foo.stop(permanently: true) == .skipped) // already stopped
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
@@ -159,7 +159,7 @@ struct StartStopStateMachine_MainActor_Class_Tests {
         #expect(foo.read2() == nil)
 
         // attempt to restart -- not allowed after permanent stop
-        #expect(await foo.start(string: "C") == false)
+        #expect(await foo.start(string: "C") == .failed)
 
         #expect(foo.lifecycle.assertState(is: .started) == false)
         #expect(foo.lifecycle.assertState(is: .stopped) == false)
