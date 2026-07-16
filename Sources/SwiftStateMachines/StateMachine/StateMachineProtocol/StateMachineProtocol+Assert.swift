@@ -13,7 +13,7 @@ extension StateMachineProtocol where Self: ~Copyable {
 
     public func assertState(
         is expectedStateID: StateID
-    ) -> Bool  {
+    ) -> Bool {
         stateStorage.state.stateID == expectedStateID
     }
 }

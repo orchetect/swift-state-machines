@@ -20,12 +20,17 @@ extension StateMachineProtocol where Self: ~Copyable {
             let newResources = anyResources.resourcesClosure()
             update(stateStorage: StateStorage(state: newState, resources: newResources))
             return .completed(resources: newResources)
+
         case .failed:
             return .failed
+
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
+
         case .skipped:
             return .skipped
         }
@@ -41,12 +46,17 @@ extension StateMachineProtocol where Self: ~Copyable {
         case .completed(resources: _):
             update(stateStorage: StateStorage(state: newState))
             return .completed
+
         case .failed:
             return .failed
+
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
+
         case .skipped:
             return .skipped
         }
@@ -65,12 +75,17 @@ extension StateMachineProtocol where Self: ~Copyable {
             let newResources = anyResources.resourcesClosure()
             update(stateStorage: StateStorage(state: newState, resources: newResources))
             return .completed(resources: newResources)
+
         case .failed:
             return .failed
+
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
+
         case .skipped:
             return .skipped
         }
@@ -86,12 +101,17 @@ extension StateMachineProtocol where Self: ~Copyable {
         case .completed(resources: _):
             update(stateStorage: StateStorage(state: newState))
             return .completed
+
         case .failed:
             return .failed
+
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
+
         case .skipped:
             return .skipped
         }
@@ -114,12 +134,17 @@ extension StateMachineProtocol where Self: ~Copyable {
             let newResources = anyResources.resourcesClosure()
             update(stateStorage: StateStorage(state: newState, resources: newResources))
             return .completed(resources: newResources)
+
         case .failed:
             return .failed
+
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
+
         case .skipped:
             return .skipped
         }
@@ -135,12 +160,17 @@ extension StateMachineProtocol where Self: ~Copyable {
         case .completed(resources: _):
             update(stateStorage: StateStorage(state: newState))
             return .completed
+
         case .failed:
             return .failed
+
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
+
         case .skipped:
             return .skipped
         }
@@ -159,12 +189,17 @@ extension StateMachineProtocol where Self: ~Copyable {
             let newResources = anyResources.resourcesClosure()
             update(stateStorage: StateStorage(state: newState, resources: newResources))
             return .completed(resources: newResources)
+
         case .failed:
             return .failed
+
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
+
         case .skipped:
             return .skipped
         }
@@ -180,12 +215,17 @@ extension StateMachineProtocol where Self: ~Copyable {
         case .completed(resources: _):
             update(stateStorage: StateStorage(state: newState))
             return .completed
+
         case .failed:
             return .failed
+
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
+
         case .skipped:
             return .skipped
         }

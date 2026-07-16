@@ -12,7 +12,9 @@ extension StateMachineProtocol where Self: ~Copyable {
         to newState: consuming S,
         resources: () throws(E) -> S.StateResources
     ) throws(E) -> StateMachineResourcedTransitionResult<S> {
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason(of: S.self) { return denialReason }
+
         let newResources = try resources()
         update(stateStorage: StateStorage(state: newState, resources: newResources))
         return .completed(resources: newResources)
@@ -22,8 +24,9 @@ extension StateMachineProtocol where Self: ~Copyable {
     public func transition<S: StateMachineState<StateID>>(
         to newState: S
     ) -> StateMachineTransitionResult where S.StateResources == Never {
-        if newState.stateID == stateStorage.state.stateID { return .skipped }
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason { return denialReason }
+
         update(stateStorage: StateStorage(state: newState))
         return .completed
     }
@@ -33,7 +36,9 @@ extension StateMachineProtocol where Self: ~Copyable {
         to newState: StateID,
         resources: () throws(E) -> S.StateResources
     ) throws(E) -> StateMachineResourcedTransitionResult<S> where S == StateID {
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason(of: S.self) { return denialReason }
+
         let newResources = try resources()
         update(stateStorage: StateStorage(state: newState, resources: newResources))
         return .completed(resources: newResources)
@@ -43,8 +48,9 @@ extension StateMachineProtocol where Self: ~Copyable {
     public func transition<S: StateMachineState<StateID>>(
         to newState: StateID
     ) -> StateMachineTransitionResult where S == StateID, S.StateResources == Never {
-        if newState.stateID == stateStorage.state.stateID { return .skipped }
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason { return denialReason }
+
         update(stateStorage: StateStorage(state: newState))
         return .completed
     }
@@ -58,7 +64,9 @@ extension StateMachineProtocol where Self: ~Copyable {
         to newState: S,
         resources: () async throws(E) -> S.StateResources
     ) async throws(E) -> StateMachineResourcedTransitionResult<S> {
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason(of: S.self) { return denialReason }
+
         let newResources = try await resources()
         update(stateStorage: StateStorage(state: newState, resources: newResources))
         return .completed(resources: newResources)
@@ -68,8 +76,9 @@ extension StateMachineProtocol where Self: ~Copyable {
     public func transition<S: StateMachineState<StateID>, E>(
         to newState: S
     ) async throws(E) -> StateMachineTransitionResult where S.StateResources == Never {
-        if newState.stateID == stateStorage.state.stateID { return .skipped }
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason { return denialReason }
+
         update(stateStorage: StateStorage(state: newState))
         return .completed
     }
@@ -79,7 +88,9 @@ extension StateMachineProtocol where Self: ~Copyable {
         to newState: StateID,
         resources: () async throws(E) -> S.StateResources
     ) async throws(E) -> StateMachineResourcedTransitionResult<S> where S == StateID {
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason(of: S.self) { return denialReason }
+
         let newResources = try await resources()
         update(stateStorage: StateStorage(state: newState, resources: newResources))
         return .completed(resources: newResources)
@@ -89,8 +100,9 @@ extension StateMachineProtocol where Self: ~Copyable {
     public func transition<S: StateMachineState<StateID>, E>(
         to newState: StateID
     ) async throws(E) -> StateMachineTransitionResult where S == StateID, S.StateResources == Never {
-        if newState.stateID == stateStorage.state.stateID { return .skipped }
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason { return denialReason }
+
         update(stateStorage: StateStorage(state: newState))
         return .completed
     }

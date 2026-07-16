@@ -62,9 +62,10 @@ extension StateMachineActorProtocol where Self.StateStorage == SendableStateMach
         to newState: consuming NewState,
         resources: sending (_ currentResources: inout CurrentState.StateResources) async throws(E) -> sending StateMachineTransitionCompletion<NewState>
     ) async throws(E) -> StateMachineResourcedTransitionResult<NewState> where NewState.StateResources: Sendable {
-        typealias Completion = StateMachineTransitionCompletion<NewState>
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
 
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        typealias Completion = StateMachineTransitionCompletion<NewState>
         guard let completion: Completion = try await withResources(for: currentState, { currentResources async throws(E) in
             try await resources(&currentResources)
         }, wrongState: { () async throws(E) in
@@ -81,7 +82,9 @@ extension StateMachineActorProtocol where Self.StateStorage == SendableStateMach
         case .failed:
             return .failed
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
         case .skipped:
@@ -107,9 +110,10 @@ extension StateMachineActorProtocol where Self.StateStorage == SendableStateMach
         to newState: NewState.StateID,
         resources: (_ currentResources: inout CurrentState.StateResources) async throws(E) -> StateMachineTransitionCompletion<NewState>
     ) async throws(E) -> StateMachineResourcedTransitionResult<NewState> where NewState.StateResources: Sendable, NewState == StateID {
-        typealias Completion = StateMachineTransitionCompletion<NewState>
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
 
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        typealias Completion = StateMachineTransitionCompletion<NewState>
         guard let completion: Completion = try await withResources(for: currentState, { currentResources async throws(E) in
             try await resources(&currentResources)
         }, wrongState: { () async throws(E) in
@@ -126,7 +130,9 @@ extension StateMachineActorProtocol where Self.StateStorage == SendableStateMach
         case .failed:
             return .failed
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
         case .skipped:

@@ -25,26 +25,28 @@ extension StartStopStateMachine {
     @_disfavoredOverload @discardableResult
     public func start(
         resources: () -> StartedStateMachineState<StartedResources>.StateResources
-    ) -> Bool {
+    ) -> StateMachineTransitionResult {
         stateMachine.withLock { stateMachine in
             stateMachine.transition(to: .started()) {
                 resources()
-            }.genericResult != .failed
+            }.genericResult
         } lockFailure: {
-            false
+            .failed
         }
     }
 
     @discardableResult
     public func start(
         _ block: () -> Void
-    ) -> Bool where StartedResources == Never {
+    ) -> StateMachineTransitionResult where StartedResources == Never {
         stateMachine.withLock { stateMachine in
-            guard stateMachine.stateStorage.state.canTransition(to: .started()) else { return false }
+            let compareResult = stateMachine.stateStorage.state.compare(to: .started())
+            if let denialReason = compareResult.denialReason { return denialReason }
+
             block()
-            return stateMachine.transition(to: .started()) != .failed
+            return stateMachine.transition(to: .started())
         } lockFailure: {
-            false
+            .failed
         }
     }
 
@@ -52,13 +54,14 @@ extension StartStopStateMachine {
     public func stop(
         permanently isPermanent: Bool = false,
         resourcesTeardown: consuming ((_ resources: inout StartedState.StateResources) -> Void)? = nil
-    ) -> Bool {
+    ) -> StateMachineTransitionResult {
         stateMachine.withLock { stateMachine in
-            if isPermanent {
-                guard stateMachine.stateStorage.state.canTransition(to:.stoppedPermanently()) else { return false }
+            let compareResult = if isPermanent {
+                stateMachine.stateStorage.state.compare(to: .stoppedPermanently())
             } else {
-                guard stateMachine.stateStorage.state.canTransition(to:.stopped()) else { return false }
+                stateMachine.stateStorage.state.compare(to: .stopped())
             }
+            if let denialReason = compareResult.denialReason { return denialReason }
 
             if let resourcesTeardown {
                 stateMachine.withResources(for: .started()) { resources in
@@ -72,9 +75,9 @@ extension StartStopStateMachine {
             let result = isPermanent
                 ? stateMachine.transition(to: .stoppedPermanently())
                 : stateMachine.transition(to: .stopped())
-            return result != .failed
+            return result
         } lockFailure: {
-            false
+            .failed
         }
     }
 
@@ -82,22 +85,23 @@ extension StartStopStateMachine {
     public func stop(
         permanently isPermanent: Bool = false,
         _ block: () -> Void
-    ) -> Bool where StartedResources == Never {
+    ) -> StateMachineTransitionResult where StartedResources == Never {
         stateMachine.withLock { stateMachine in
-            if isPermanent {
-                guard stateMachine.stateStorage.state.canTransition(to:.stoppedPermanently()) else { return false }
+            let compareResult = if isPermanent {
+                stateMachine.stateStorage.state.compare(to: .stoppedPermanently())
             } else {
-                guard stateMachine.stateStorage.state.canTransition(to:.stopped()) else { return false }
+                stateMachine.stateStorage.state.compare(to: .stopped())
             }
-            
+            if let denialReason = compareResult.denialReason { return denialReason }
+
             block()
 
             let result = isPermanent
                 ? stateMachine.transition(to: .stoppedPermanently())
                 : stateMachine.transition(to: .stopped())
-            return result != .failed
+            return result
         } lockFailure: {
-            false
+            .failed
         }
     }
 }
@@ -108,54 +112,54 @@ extension StartStopStateMachine {
     @_disfavoredOverload @discardableResult
     public func start<E>(
         resources: sending @escaping @isolated(any) () async throws(E) -> StartedStateMachineState<StartedResources>.StateResources
-    ) async throws(E) -> Bool {
-        guard stateMachine._fenceLock() else { return false }
+    ) async throws(E) -> StateMachineTransitionResult {
+        guard stateMachine._fenceLock() else { return .failed }
         defer { stateMachine._fenceUnlock() }
 
         return try await stateMachine.transition(to: .started()) { () async throws(E) in
             try await resources()
-        }.genericResult != .failed
+        }.genericResult
     }
 
     @_disfavoredOverload @discardableResult
     public func start<E>(
         resources: sending () async throws(E) -> StartedStateMachineState<StartedResources>.StateResources
-    ) async throws(E) -> Bool {
-        guard stateMachine._fenceLock() else { return false }
+    ) async throws(E) -> StateMachineTransitionResult {
+        guard stateMachine._fenceLock() else { return .failed }
         defer { stateMachine._fenceUnlock() }
 
         return try await stateMachine.transition(to: .started()) { () async throws(E) in
             try await resources()
-        }.genericResult != .failed
+        }.genericResult
     }
 
     @discardableResult
     public func start<E>(
         _ block: sending @escaping @isolated(any) () async throws(E) -> Void
-    ) async throws(E) -> Bool where StartedResources == Never {
-        guard stateMachine._fenceLock() else { return false }
+    ) async throws(E) -> StateMachineTransitionResult where StartedResources == Never {
+        guard stateMachine._fenceLock() else { return .failed }
         defer { stateMachine._fenceUnlock() }
 
-        guard stateMachine.stateStorage.state.canTransition(to: .started()) else { return false }
+        let compareResult = stateMachine.stateStorage.state.compare(to: .started())
+        if let denialReason = compareResult.denialReason { return denialReason }
 
         try await block()
-
-        return stateMachine.transition(to: .started()) != .failed
+        return stateMachine.transition(to: .started())
 
     }
 
     @discardableResult
     public func start<E>(
         _ block: sending () async throws(E) -> Void
-    ) async throws(E) -> Bool where StartedResources == Never {
-        guard stateMachine._fenceLock() else { return false }
+    ) async throws(E) -> StateMachineTransitionResult where StartedResources == Never {
+        guard stateMachine._fenceLock() else { return .failed }
         defer { stateMachine._fenceUnlock() }
 
-        guard stateMachine.stateStorage.state.canTransition(to: .started()) else { return false }
+        let compareResult = stateMachine.stateStorage.state.compare(to: .started())
+        if let denialReason = compareResult.denialReason { return denialReason }
 
         try await block()
-
-        return stateMachine.transition(to: .started()) != .failed
+        return stateMachine.transition(to: .started())
 
     }
 
@@ -163,15 +167,16 @@ extension StartStopStateMachine {
     public func stop<E>(
         permanently isPermanent: Bool = false,
         resourcesTeardown: sending (@isolated(any) (_ resources: inout StartedState.StateResources) async throws(E) -> Void)? = nil
-    ) async throws(E) -> Bool {
-        guard stateMachine._fenceLock() else { return false }
+    ) async throws(E) -> StateMachineTransitionResult {
+        guard stateMachine._fenceLock() else { return .failed }
         defer { stateMachine._fenceUnlock() }
 
-        if isPermanent {
-            guard stateMachine.stateStorage.state.canTransition(to: .stoppedPermanently()) else { return false }
+        let compareResult = if isPermanent {
+            stateMachine.stateStorage.state.compare(to: .stoppedPermanently())
         } else {
-            guard stateMachine.stateStorage.state.canTransition(to: .stopped()) else { return false }
+            stateMachine.stateStorage.state.compare(to: .stopped())
         }
+        if let denialReason = compareResult.denialReason { return denialReason }
 
         if let resourcesTeardown {
             if var resources = stateMachine.resources(for: .started()) {
@@ -182,51 +187,53 @@ extension StartStopStateMachine {
         let result = isPermanent
             ? stateMachine.transition(to: .stoppedPermanently())
             : stateMachine.transition(to: .stopped())
-        return result != .failed
+        return result
     }
 
     @discardableResult
     public func stop<E>(
         permanently isPermanent: Bool = false,
         _ block: sending @escaping @isolated(any) () async throws(E) -> Void
-    ) async throws(E) -> Bool where StartedResources == Never {
-        guard stateMachine._fenceLock() else { return false }
+    ) async throws(E) -> StateMachineTransitionResult where StartedResources == Never {
+        guard stateMachine._fenceLock() else { return .failed }
         defer { stateMachine._fenceUnlock() }
 
-        if isPermanent {
-            guard stateMachine.stateStorage.state.canTransition(to: .stoppedPermanently()) else { return false }
+        let compareResult = if isPermanent {
+            stateMachine.stateStorage.state.compare(to: .stoppedPermanently())
         } else {
-            guard stateMachine.stateStorage.state.canTransition(to: .stopped()) else { return false }
+            stateMachine.stateStorage.state.compare(to: .stopped())
         }
+        if let denialReason = compareResult.denialReason { return denialReason }
 
         try await block()
 
         let result = isPermanent
             ? stateMachine.transition(to: .stoppedPermanently())
             : stateMachine.transition(to: .stopped())
-        return result != .failed
+        return result
     }
 
     @discardableResult
     public func stop<E>(
         permanently isPermanent: Bool = false,
         _ block: sending () async throws(E) -> Void
-    ) async throws(E) -> Bool where StartedResources == Never {
-        guard stateMachine._fenceLock() else { return false }
+    ) async throws(E) -> StateMachineTransitionResult where StartedResources == Never {
+        guard stateMachine._fenceLock() else { return .failed }
         defer { stateMachine._fenceUnlock() }
 
-        if isPermanent {
-            guard stateMachine.stateStorage.state.canTransition(to: .stoppedPermanently()) else { return false }
+        let compareResult = if isPermanent {
+            stateMachine.stateStorage.state.compare(to: .stoppedPermanently())
         } else {
-            guard stateMachine.stateStorage.state.canTransition(to: .stopped()) else { return false }
+            stateMachine.stateStorage.state.compare(to: .stopped())
         }
+        if let denialReason = compareResult.denialReason { return denialReason }
 
         try await block()
 
         let result = isPermanent
             ? stateMachine.transition(to: .stoppedPermanently())
             : stateMachine.transition(to: .stopped())
-        return result != .failed
+        return result
     }
 }
 

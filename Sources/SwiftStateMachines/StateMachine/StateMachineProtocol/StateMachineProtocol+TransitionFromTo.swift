@@ -15,9 +15,10 @@ extension StateMachineProtocol where Self: ~Copyable {
         to newState: NewState,
         resources: (_ currentResources: inout CurrentState.StateResources) throws(E) -> StateMachineTransitionCompletion<NewState>
     ) throws(E) -> StateMachineResourcedTransitionResult<NewState> {
-        typealias Completion = StateMachineTransitionCompletion<NewState>
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
 
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        typealias Completion = StateMachineTransitionCompletion<NewState>
         guard let completion: Completion = try withResources(for: currentState, { currentResources throws(E) in
             try resources(&currentResources)
         }, wrongState: { () throws(E) in
@@ -31,12 +32,17 @@ extension StateMachineProtocol where Self: ~Copyable {
             let newResources = anyResources.resourcesClosure()
             update(stateStorage: StateStorage(state: newState, resources: newResources))
             return .completed(resources: newResources)
+
         case .failed:
             return .failed
+
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
+
         case .skipped:
             return .failed
         }
@@ -60,9 +66,10 @@ extension StateMachineProtocol where Self: ~Copyable {
         to newState: NewState.StateID,
         resources: (_ currentResources: inout CurrentState.StateResources) throws(E) -> StateMachineTransitionCompletion<NewState>
     ) throws(E) -> StateMachineResourcedTransitionResult<NewState> where NewState == StateID {
-        typealias Completion = StateMachineTransitionCompletion<NewState>
+        let compareResult = stateStorage.state.compare(to: newState)
+        if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
 
-        guard stateStorage.state.canTransition(to: newState) else { return .failed }
+        typealias Completion = StateMachineTransitionCompletion<NewState>
         guard let completion: Completion = try withResources(for: currentState, { currentResources throws(E) in
             try resources(&currentResources)
         }, wrongState: { () throws(E) in
@@ -76,12 +83,17 @@ extension StateMachineProtocol where Self: ~Copyable {
             let newResources = anyResources.resourcesClosure()
             update(stateStorage: StateStorage(state: newState, resources: newResources))
             return .completed(resources: newResources)
+
         case .failed:
             return .failed
+
         case let .failureState(storage: failureStorage):
-            guard stateStorage.state.canTransition(to: failureStorage.state) else { return .failed }
+            let compareResult = stateStorage.state.compare(to: failureStorage.state)
+            if let denialReason = compareResult.denialReason(of: NewState.self) { return denialReason }
+
             _update(stateStorage: failureStorage)
             return .failed
+
         case .skipped:
             return .failed
         }
