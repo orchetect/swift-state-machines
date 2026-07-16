@@ -20,3 +20,17 @@ extension StateMachineState {
         true
     }
 }
+
+// MARK: - Methods
+
+extension StateMachineState {
+    /// Returns a state machine state comparison result describing whether two states are equal, or
+    /// whether one state can transition into another.
+    public func compare(to newState: some StateMachineState<StateID>) -> StateMachineStateComparisonResult {
+        if canTransition(to: newState) {
+            .canTransition
+        } else {
+            stateID == newState.stateID ? .cannotTransitionAndIsEqual : .cannotTransition
+        }
+    }
+}
