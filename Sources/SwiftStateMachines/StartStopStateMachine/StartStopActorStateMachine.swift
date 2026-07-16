@@ -117,6 +117,17 @@ extension StartStopActorStateMachine {
         }
     }
 
+    public func withStartedResources<T: Sendable, E>(
+        throwing wrongStateError: E,
+        _ block: sending @escaping (_ resources: inout StartedState.StateResources) async throws(E) -> T,
+    ) async throws(E) -> T {
+        try await stateMachine.withResources(for: .started()) { resources async throws(E) -> T in
+            try await block(&resources)
+        } wrongState: { () async throws(E) in
+            throw wrongStateError
+        }
+    }
+
     nonisolated
     public var startedResources: StartedState.StateResources? {
         stateMachine.resources(for: .started())

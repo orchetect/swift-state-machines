@@ -251,6 +251,17 @@ extension StartStopStateMachine {
         }
     }
 
+    public func withStartedResources<T, E>(
+        throwing wrongStateError: E,
+        _ block: (_ resources: inout StartedState.StateResources) throws(E) -> T,
+    ) throws(E) -> T {
+        try stateMachine.withResources(for: .started()) { resources throws(E) -> T in
+            try block(&resources)
+        } wrongState: { () throws(E) in
+            throw wrongStateError
+        }
+    }
+
     public var startedResources: StartedState.StateResources? {
         stateMachine.resources(for: .started())
     }
