@@ -40,6 +40,7 @@ extension StartStopStateMachine {
         _ block: () -> Void
     ) -> Bool where StartedResources == Never {
         stateMachine.withLock { stateMachine in
+            guard stateMachine.stateStorage.state.canTransition(to: .started()) else { return false }
             block()
             return stateMachine.transition(to: .started()) != .failed
         } lockFailure: {
@@ -53,6 +54,12 @@ extension StartStopStateMachine {
         resourcesTeardown: consuming ((_ resources: inout StartedState.StateResources) -> Void)? = nil
     ) -> Bool {
         stateMachine.withLock { stateMachine in
+            if isPermanent {
+                guard stateMachine.stateStorage.state.canTransition(to:.stoppedPermanently()) else { return false }
+            } else {
+                guard stateMachine.stateStorage.state.canTransition(to:.stopped()) else { return false }
+            }
+
             if let resourcesTeardown {
                 stateMachine.withResources(for: .started()) { resources in
                     // clean up resources
@@ -77,6 +84,12 @@ extension StartStopStateMachine {
         _ block: () -> Void
     ) -> Bool where StartedResources == Never {
         stateMachine.withLock { stateMachine in
+            if isPermanent {
+                guard stateMachine.stateStorage.state.canTransition(to:.stoppedPermanently()) else { return false }
+            } else {
+                guard stateMachine.stateStorage.state.canTransition(to:.stopped()) else { return false }
+            }
+            
             block()
 
             let result = isPermanent
@@ -93,66 +106,76 @@ extension StartStopStateMachine {
 
 extension StartStopStateMachine {
     @_disfavoredOverload @discardableResult
-    public func start(
-        resources: sending @escaping @isolated(any) () async -> StartedStateMachineState<StartedResources>.StateResources
-    ) async -> Bool {
+    public func start<E>(
+        resources: sending @escaping @isolated(any) () async throws(E) -> StartedStateMachineState<StartedResources>.StateResources
+    ) async throws(E) -> Bool {
         guard stateMachine._fenceLock() else { return false }
         defer { stateMachine._fenceUnlock() }
 
-        return await stateMachine.transition(to: .started()) {
-            await resources()
+        return try await stateMachine.transition(to: .started()) { () async throws(E) in
+            try await resources()
         }.genericResult != .failed
     }
 
     @_disfavoredOverload @discardableResult
-    public func start(
-        resources: sending () async -> StartedStateMachineState<StartedResources>.StateResources
-    ) async -> Bool {
+    public func start<E>(
+        resources: sending () async throws(E) -> StartedStateMachineState<StartedResources>.StateResources
+    ) async throws(E) -> Bool {
         guard stateMachine._fenceLock() else { return false }
         defer { stateMachine._fenceUnlock() }
 
-        return await stateMachine.transition(to: .started()) {
-            await resources()
+        return try await stateMachine.transition(to: .started()) { () async throws(E) in
+            try await resources()
         }.genericResult != .failed
     }
 
     @discardableResult
-    public func start(
-        _ block: sending @escaping @isolated(any) () async -> Void
-    ) async -> Bool where StartedResources == Never {
+    public func start<E>(
+        _ block: sending @escaping @isolated(any) () async throws(E) -> Void
+    ) async throws(E) -> Bool where StartedResources == Never {
         guard stateMachine._fenceLock() else { return false }
         defer { stateMachine._fenceUnlock() }
 
-        await block()
+        guard stateMachine.stateStorage.state.canTransition(to: .started()) else { return false }
+
+        try await block()
 
         return stateMachine.transition(to: .started()) != .failed
 
     }
 
     @discardableResult
-    public func start(
-        _ block: sending () async -> Void
-    ) async -> Bool where StartedResources == Never {
+    public func start<E>(
+        _ block: sending () async throws(E) -> Void
+    ) async throws(E) -> Bool where StartedResources == Never {
         guard stateMachine._fenceLock() else { return false }
         defer { stateMachine._fenceUnlock() }
 
-        await block()
+        guard stateMachine.stateStorage.state.canTransition(to: .started()) else { return false }
+
+        try await block()
 
         return stateMachine.transition(to: .started()) != .failed
 
     }
 
     @_disfavoredOverload @discardableResult
-    public func stop(
+    public func stop<E>(
         permanently isPermanent: Bool = false,
-        resourcesTeardown: sending (@isolated(any) (_ resources: inout StartedState.StateResources) async -> Void)? = nil
-    ) async -> Bool {
+        resourcesTeardown: sending (@isolated(any) (_ resources: inout StartedState.StateResources) async throws(E) -> Void)? = nil
+    ) async throws(E) -> Bool {
         guard stateMachine._fenceLock() else { return false }
         defer { stateMachine._fenceUnlock() }
+
+        if isPermanent {
+            guard stateMachine.stateStorage.state.canTransition(to: .stoppedPermanently()) else { return false }
+        } else {
+            guard stateMachine.stateStorage.state.canTransition(to: .stopped()) else { return false }
+        }
 
         if let resourcesTeardown {
             if var resources = stateMachine.resources(for: .started()) {
-                await resourcesTeardown(&resources)
+                try await resourcesTeardown(&resources)
             }
         }
 
@@ -163,14 +186,20 @@ extension StartStopStateMachine {
     }
 
     @discardableResult
-    public func stop(
+    public func stop<E>(
         permanently isPermanent: Bool = false,
-        _ block: sending @escaping @isolated(any) () async -> Void
-    ) async -> Bool where StartedResources == Never {
+        _ block: sending @escaping @isolated(any) () async throws(E) -> Void
+    ) async throws(E) -> Bool where StartedResources == Never {
         guard stateMachine._fenceLock() else { return false }
         defer { stateMachine._fenceUnlock() }
 
-        await block()
+        if isPermanent {
+            guard stateMachine.stateStorage.state.canTransition(to: .stoppedPermanently()) else { return false }
+        } else {
+            guard stateMachine.stateStorage.state.canTransition(to: .stopped()) else { return false }
+        }
+
+        try await block()
 
         let result = isPermanent
             ? stateMachine.transition(to: .stoppedPermanently())
@@ -179,14 +208,20 @@ extension StartStopStateMachine {
     }
 
     @discardableResult
-    public func stop(
+    public func stop<E>(
         permanently isPermanent: Bool = false,
-        _ block: sending () async -> Void
-    ) async -> Bool where StartedResources == Never {
+        _ block: sending () async throws(E) -> Void
+    ) async throws(E) -> Bool where StartedResources == Never {
         guard stateMachine._fenceLock() else { return false }
         defer { stateMachine._fenceUnlock() }
 
-        await block()
+        if isPermanent {
+            guard stateMachine.stateStorage.state.canTransition(to: .stoppedPermanently()) else { return false }
+        } else {
+            guard stateMachine.stateStorage.state.canTransition(to: .stopped()) else { return false }
+        }
+
+        try await block()
 
         let result = isPermanent
             ? stateMachine.transition(to: .stoppedPermanently())
