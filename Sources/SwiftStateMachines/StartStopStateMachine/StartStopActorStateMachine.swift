@@ -132,6 +132,14 @@ extension StartStopActorStateMachine {
     public var startedResources: StartedState.StateResources? {
         stateMachine.resources(for: .started())
     }
+
+    nonisolated
+    public func startedResources<E>(throwing wrongStateError: E) throws(E) -> StartedState.StateResources {
+        guard let resources = startedResources else {
+            throw wrongStateError
+        }
+        return resources
+    }
 }
 
 // MARK: - State Asserts
