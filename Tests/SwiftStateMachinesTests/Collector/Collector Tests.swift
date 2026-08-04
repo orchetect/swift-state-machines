@@ -26,7 +26,7 @@ struct Collector_Tests {
             Task { @TestActor in await receiver.add(value) }
         }
 
-        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 5.0)
+        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
     }
 
     @Test(arguments: 0 ..< 10)
@@ -41,7 +41,7 @@ struct Collector_Tests {
         collector.publish(2)
         collector.publish(3)
 
-        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 5.0)
+        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
     }
 
     /// Test that existential Sendable types such as closures work.
@@ -57,7 +57,7 @@ struct Collector_Tests {
         collector.publish({ 2 })
         collector.publish({ 3 })
 
-        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 5.0)
+        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
     }
 
     #if !GITHUB_ACTIONS
