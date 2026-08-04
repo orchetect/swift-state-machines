@@ -21,6 +21,9 @@ struct Collector_Tests {
         collector.publish(2)
         collector.publish(3)
 
+        // check internal state
+        await wait(expect: { await collector.valuesBacklog == [1, 2, 3] }, timeout: 10.0)
+
         // setting the handler causes the values backlog to be released
         collector.setReceiver { value in
             Task { @TestActor in await receiver.add(value) }
