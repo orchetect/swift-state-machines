@@ -31,7 +31,7 @@
 ///
 /// ```swift
 /// var myType = MyType()
-/// await myType.update(property: .state())
+/// await myType.update(property: .state)
 /// ```
 public struct GenericAsyncPropertyAccessor<Subject: Sendable, Value: Sendable, Failure: Error> {
     public typealias NewValueClosure = @Sendable (_ subject: borrowing Subject) async throws(Failure) -> PropertyUpdateResult<Value>
