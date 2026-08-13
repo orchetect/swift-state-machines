@@ -64,9 +64,8 @@ struct Collector_Tests {
     }
 
     #if !GITHUB_ACTIONS
-    /// This tests the ordering of values dispatch. Also, since `Collector` uses a common global actor, also
-    /// check that more than one instance are independent and ensure all instances do not stack serially on
-    /// the global actor.
+    /// This tests the ordering of values dispatch.
+    /// Also check that more than one instance are independent.
     ///
     /// This test requires precise timing measurement. As such is exempted from running on CI pipelines.
     @Test
