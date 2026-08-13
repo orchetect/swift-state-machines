@@ -13,6 +13,9 @@ public actor Collector<T: Sendable> {
     public typealias Receiver = @Sendable (_ value: T) -> Void
     var receiver: Receiver? = nil
 
+    nonisolated
+    let taskQueue = SerialTaskQueue()
+
     var valuesBacklog: [T] = []
 
     public init(
@@ -35,15 +38,15 @@ extension Collector {
     /// once a receiver is assigned.
     nonisolated
     public func publish(_ value: sending T) {
-        Task { @CollectorActor [value] in
-            await _send(value)
+        taskQueue.enqueue { [self] in
+            await self._send(value)
         }
     }
 
     /// Set the receiver handler that values will be published to.
     nonisolated
     public func setReceiver(_ receiver: Receiver?) {
-        Task { @CollectorActor in
+        taskQueue.enqueue { [self] in
             await _setReceiver(receiver)
 
             guard let receiver else { return }
