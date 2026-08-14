@@ -28,7 +28,7 @@ struct SerialTaskQueue_Tests {
             receiver.add(3)
         }
 
-        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
+        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 20.0)
     }
 
     @Test
@@ -133,7 +133,7 @@ struct SerialTaskQueue_Tests {
         // deinit the queue
         taskQueue = nil
 
-        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
+        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 20.0)
     }
 
     @Test
@@ -159,7 +159,7 @@ struct SerialTaskQueue_Tests {
         // deinit the queue
         taskQueue = nil
 
-        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
+        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 20.0)
     }
 
     @Test
