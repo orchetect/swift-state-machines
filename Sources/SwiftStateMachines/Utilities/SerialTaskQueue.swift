@@ -44,26 +44,22 @@ public final class SerialTaskQueue {
     ///   - cancelOnDeinit: When `true`, if an operation is in-progress it will be cancelled and
     ///   any remaining operations enqueued will be discarded. When `false, all enqueued operations are
     ///   allowed to complete in serial order in the background.
-    public init(cancelOnDeinit: Bool = true) {
+    public init(cancelOnDeinit: Bool = false) {
         self.isCancelledOnDeinit = cancelOnDeinit
 
         let stream = AsyncStream { [weak self] continuation in
             self?.continuation = continuation
         }
-        task = Task { [weak self, task] in
+        task = Task { [task] in
             for await operation in stream {
                 try await operation()
             }
             task?.cancel()
-            self?.cleanup()
         }
     }
 
     deinit {
-        if isCancelledOnDeinit {
-            cancel()
-        }
-        continuation = nil
+        _cancel(isImmediate: isCancelledOnDeinit)
     }
 }
 
@@ -82,14 +78,19 @@ extension SerialTaskQueue {
     /// >
     /// > This method is automatically called on class deinit if ``isCancelledOnDeinit`` is `true`.
     public func cancel() {
-        task?.cancel()
-        continuation?.finish()
-        cleanup()
+        _cancel(isImmediate: true)
     }
 
-    private func cleanup() {
-        task = nil
-        continuation = nil
+    private func _cancel(isImmediate: Bool) {
+        if isImmediate {
+            task?.cancel()
+            task = nil
+        }
+
+        continuation?.finish()
+        if isImmediate {
+            continuation = nil
+        }
     }
 }
 
@@ -98,35 +99,51 @@ extension SerialTaskQueue {
 extension SerialTaskQueue {
     /// Enqueue an operation and return immediately.
     ///
-    /// The operation is started asynchronously immediately if the queue is empty, otherwise it is
+    /// The operation is asynchronously started immediately if the queue is empty, otherwise it is
     /// enqueued and executed once the current operation(s) are finished.
     ///
     /// > Note:
     /// >
     /// > This method is safe to call recursively as all newly-enqueued operations are asynchronously
     /// > appended to the end of the queue.
-    public func enqueue(
+    public func async(
         _ operation: sending @escaping () async throws -> Void
     ) {
-        continuation?.yield(operation)
+        continuation?.yield {
+            try await operation()
+        }
     }
 
     /// Enqueue an operation and wait for its completion, optionally returning a value.
     ///
-    /// The operation is started asynchronously immediately if the queue is empty, otherwise it is
-    /// enqueued and executed once the current operation(s) are finished.
+    /// The operation is synchronously started immediately if the queue is empty, otherwise it is
+    /// enqueued and executed once the current operation(s) are finished after which this method returns.
     ///
     /// > Note:
     /// >
+    /// > This method requires ``isCancelledOnDeinit`` to be `false`, otherwise an error is always thrown.
+    /// >
     /// > Use care when calling this method, as it can lead to a queue deadlocks if nested calls are
     /// > inadvertently made to it.
-    public func enqueueAndWait<T>(
+    public func sync<T>(
         _ operation: @Sendable @escaping () async throws -> T
-    ) async rethrows -> sending T {
-        await withCheckedContinuation { localContinuation in
-            continuation?.yield {
-                let value = try await operation()
-                localContinuation.resume(with: .success(value))
+    ) async throws -> sending T {
+        guard !isCancelledOnDeinit else {
+            throw CancellationError()
+        }
+
+        return try await withCheckedThrowingContinuation { localContinuation in
+            guard let continuation else {
+                localContinuation.resume(with: .failure(CancellationError()))
+                return
+            }
+            continuation.yield {
+                do {
+                    let value = try await operation()
+                    localContinuation.resume(with: .success(value))
+                } catch {
+                    localContinuation.resume(throwing: error)
+                }
             }
         }
     }

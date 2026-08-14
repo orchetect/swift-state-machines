@@ -38,7 +38,7 @@ extension Collector {
     /// once a receiver is assigned.
     nonisolated
     public func publish(_ value: sending T) {
-        taskQueue.enqueue { [self] in
+        taskQueue.async { [self] in
             await self._send(value)
         }
     }
@@ -46,7 +46,7 @@ extension Collector {
     /// Set the receiver handler that values will be published to.
     nonisolated
     public func setReceiver(_ receiver: Receiver?) {
-        taskQueue.enqueue { [self] in
+        taskQueue.async { [self] in
             await _setReceiver(receiver)
 
             guard let receiver else { return }
