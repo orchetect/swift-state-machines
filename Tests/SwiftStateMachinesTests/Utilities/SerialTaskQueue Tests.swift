@@ -18,17 +18,17 @@ struct SerialTaskQueue_Tests {
         let taskQueue = SerialTaskQueue()
         taskQueue.async {
             try? await Task.sleep(seconds: 1.0)
-            await receiver.add(1)
+            receiver.add(1)
         }
         taskQueue.async {
             try? await Task.sleep(seconds: 0.5)
-            await receiver.add(2)
+            receiver.add(2)
         }
         taskQueue.async {
-            await receiver.add(3)
+            receiver.add(3)
         }
 
-        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
+        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
     }
 
     @Test
@@ -38,20 +38,20 @@ struct SerialTaskQueue_Tests {
         let taskQueue = SerialTaskQueue()
         let value1 = try await taskQueue.sync {
             try? await Task.sleep(seconds: 1.0)
-            await receiver.add(1)
+            receiver.add(1)
             return 1
         }
         let value2 = try await taskQueue.sync {
             try? await Task.sleep(seconds: 0.5)
-            await receiver.add(2)
+            receiver.add(2)
             return 2
         }
         let value3 = try await taskQueue.sync {
-            await receiver.add(3)
+            receiver.add(3)
             return 3
         }
 
-        #expect(await receiver.items == [1, 2, 3])
+        #expect(receiver.items == [1, 2, 3])
 
         #expect(value1 == 1)
         #expect(value2 == 2)
@@ -65,14 +65,14 @@ struct SerialTaskQueue_Tests {
         var taskQueue: SerialTaskQueue? = SerialTaskQueue(cancelOnDeinit: true)
         taskQueue!.async {
             try await Task.sleep(seconds: 1.0)
-            await receiver.add(1)
+            receiver.add(1)
         }
         taskQueue!.async {
             try await Task.sleep(seconds: 0.5)
-            await receiver.add(2)
+            receiver.add(2)
         }
         taskQueue!.async {
-            await receiver.add(3)
+            receiver.add(3)
         }
 
         // deinit the queue
@@ -81,7 +81,7 @@ struct SerialTaskQueue_Tests {
         // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
         // if they are not successfully cancelled
         try await Task.sleep(seconds: 2.0)
-        #expect(await receiver.items.isEmpty)
+        #expect(receiver.items.isEmpty)
     }
 
     @Test
@@ -92,16 +92,16 @@ struct SerialTaskQueue_Tests {
         taskQueue!.async {
             guard !Task.isCancelled else { return }
             try await Task.sleep(seconds: 1.0)
-            await receiver.add(1)
+            receiver.add(1)
         }
         taskQueue!.async {
             guard !Task.isCancelled else { return }
             try await Task.sleep(seconds: 0.5)
-            await receiver.add(2)
+            receiver.add(2)
         }
         taskQueue!.async {
             guard !Task.isCancelled else { return }
-            await receiver.add(3)
+            receiver.add(3)
         }
 
         // deinit the queue
@@ -110,7 +110,7 @@ struct SerialTaskQueue_Tests {
         // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
         // if they are not successfully cancelled
         try await Task.sleep(seconds: 2.0)
-        #expect(await receiver.items.isEmpty)
+        #expect(receiver.items.isEmpty)
     }
 
     @Test
@@ -120,20 +120,20 @@ struct SerialTaskQueue_Tests {
         var taskQueue: SerialTaskQueue? = SerialTaskQueue(cancelOnDeinit: false)
         taskQueue!.async {
             try await Task.sleep(seconds: 1.0)
-            await receiver.add(1)
+            receiver.add(1)
         }
         taskQueue!.async {
             try await Task.sleep(seconds: 0.5)
-            await receiver.add(2)
+            receiver.add(2)
         }
         taskQueue!.async {
-            await receiver.add(3)
+            receiver.add(3)
         }
 
         // deinit the queue
         taskQueue = nil
 
-        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
+        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
     }
 
     @Test
@@ -144,22 +144,22 @@ struct SerialTaskQueue_Tests {
         taskQueue!.async {
             guard !Task.isCancelled else { return }
             try await Task.sleep(seconds: 1.0)
-            await receiver.add(1)
+            receiver.add(1)
         }
         taskQueue!.async {
             guard !Task.isCancelled else { return }
             try await Task.sleep(seconds: 0.5)
-            await receiver.add(2)
+            receiver.add(2)
         }
         taskQueue!.async {
             guard !Task.isCancelled else { return }
-            await receiver.add(3)
+            receiver.add(3)
         }
 
         // deinit the queue
         taskQueue = nil
 
-        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
+        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
     }
 
     @Test
@@ -169,14 +169,14 @@ struct SerialTaskQueue_Tests {
         let taskQueue = SerialTaskQueue(cancelOnDeinit: true)
         taskQueue.async {
             try await Task.sleep(seconds: 1.0)
-            await receiver.add(1)
+            receiver.add(1)
         }
         taskQueue.async {
             try await Task.sleep(seconds: 0.5)
-            await receiver.add(2)
+            receiver.add(2)
         }
         taskQueue.async {
-            await receiver.add(3)
+            receiver.add(3)
         }
 
         // cancel the queue manually
@@ -185,7 +185,7 @@ struct SerialTaskQueue_Tests {
         // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
         // if they are not successfully cancelled
         try await Task.sleep(seconds: 2.0)
-        #expect(await receiver.items.isEmpty)
+        #expect(receiver.items.isEmpty)
     }
 
     @Test
@@ -196,16 +196,16 @@ struct SerialTaskQueue_Tests {
         taskQueue.async {
             guard !Task.isCancelled else { return }
             try await Task.sleep(seconds: 1.0)
-            await receiver.add(1)
+            receiver.add(1)
         }
         taskQueue.async {
             guard !Task.isCancelled else { return }
             try await Task.sleep(seconds: 0.5)
-            await receiver.add(2)
+            receiver.add(2)
         }
         taskQueue.async {
             guard !Task.isCancelled else { return }
-            await receiver.add(3)
+            receiver.add(3)
         }
 
         // cancel the queue manually
@@ -214,7 +214,7 @@ struct SerialTaskQueue_Tests {
         // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
         // if they are not successfully cancelled
         try await Task.sleep(seconds: 2.0)
-        #expect(await receiver.items.isEmpty)
+        #expect(receiver.items.isEmpty)
     }
 
     /// Ensure that errors thrown from `.sync { }` body are rethrown.

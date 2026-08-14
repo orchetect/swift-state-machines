@@ -26,10 +26,10 @@ struct Collector_Tests {
 
         // setting the handler causes the values backlog to be released
         collector.setReceiver { value in
-            Task { @TestActor in await receiver.add(value) }
+            receiver.add(value)
         }
 
-        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
+        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
     }
 
     @Test(arguments: 0 ..< 10)
@@ -37,14 +37,14 @@ struct Collector_Tests {
         let receiver = Receiver<Int>()
 
         let collector = Collector<Int> { value in
-            Task { @TestActor in await receiver.add(value) }
+            receiver.add(value)
         }
 
         collector.publish(1)
         collector.publish(2)
         collector.publish(3)
 
-        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
+        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
     }
 
     /// Test that existential Sendable types such as closures work.
@@ -53,14 +53,14 @@ struct Collector_Tests {
         let receiver = Receiver<Int>()
 
         let collector = Collector<@Sendable () -> Int> { value in
-            Task { @TestActor in await receiver.add(value()) }
+            receiver.add(value())
         }
 
         collector.publish({ 1 })
         collector.publish({ 2 })
         collector.publish({ 3 })
 
-        await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
+        await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
     }
 
     #if !GITHUB_ACTIONS
@@ -75,7 +75,7 @@ struct Collector_Tests {
 
             let collector = Collector<Int> { value in
                 sleep(TimeInterval(value))
-                Task { @TestActor in await receiver.add(value) }
+                receiver.add(value)
             }
 
             let inTime = Date()
@@ -84,7 +84,7 @@ struct Collector_Tests {
             collector.publish(1)
 
             // check ordering
-            await wait(expect: { await receiver.items == [3, 2, 1] }, timeout: 10.0)
+            await wait(expect: { receiver.items == [3, 2, 1] }, timeout: 10.0)
             let outTime = Date()
 
             // sends should run serially
