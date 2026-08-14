@@ -59,7 +59,7 @@ struct SerialTaskQueue_Tests {
     }
 
     @Test
-    func deinitNonCancellingWithoutChecks() async throws {
+    func deinit_cancelOnDeinit_withoutChecks() async throws {
         let receiver = Receiver<Int>()
 
         var taskQueue: SerialTaskQueue? = SerialTaskQueue(cancelOnDeinit: true)
@@ -75,7 +75,7 @@ struct SerialTaskQueue_Tests {
             await receiver.add(3)
         }
 
-        // deinit the queue.
+        // deinit the queue
         taskQueue = nil
 
         // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
@@ -85,7 +85,7 @@ struct SerialTaskQueue_Tests {
     }
 
     @Test
-    func deinitNonCancellingWithChecks() async throws {
+    func deinit_cancelOnDeinit_withChecks() async throws {
         let receiver = Receiver<Int>()
 
         var taskQueue: SerialTaskQueue? = SerialTaskQueue(cancelOnDeinit: true)
@@ -104,7 +104,7 @@ struct SerialTaskQueue_Tests {
             await receiver.add(3)
         }
 
-        // deinit the queue.
+        // deinit the queue
         taskQueue = nil
 
         // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
@@ -114,7 +114,7 @@ struct SerialTaskQueue_Tests {
     }
 
     @Test
-    func deinitCancellingWithoutChecks() async throws {
+    func deinit_noCancelOnDeinit_withoutChecks() async throws {
         let receiver = Receiver<Int>()
 
         var taskQueue: SerialTaskQueue? = SerialTaskQueue(cancelOnDeinit: false)
@@ -130,14 +130,14 @@ struct SerialTaskQueue_Tests {
             await receiver.add(3)
         }
 
-        // deinit the queue.
+        // deinit the queue
         taskQueue = nil
 
         await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
     }
 
     @Test
-    func deinitCancellingWithChecks() async throws {
+    func deinit_noCancelOnDeinit_withChecks() async throws {
         let receiver = Receiver<Int>()
 
         var taskQueue: SerialTaskQueue? = SerialTaskQueue(cancelOnDeinit: false)
@@ -156,10 +156,65 @@ struct SerialTaskQueue_Tests {
             await receiver.add(3)
         }
 
-        // deinit the queue.
+        // deinit the queue
         taskQueue = nil
 
         await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
+    }
+
+    @Test
+    func cancel_withoutChecks() async throws {
+        let receiver = Receiver<Int>()
+
+        let taskQueue = SerialTaskQueue(cancelOnDeinit: true)
+        taskQueue.async {
+            try await Task.sleep(seconds: 1.0)
+            await receiver.add(1)
+        }
+        taskQueue.async {
+            try await Task.sleep(seconds: 0.5)
+            await receiver.add(2)
+        }
+        taskQueue.async {
+            await receiver.add(3)
+        }
+
+        // cancel the queue manually
+        taskQueue.cancel()
+
+        // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
+        // if they are not successfully cancelled
+        try await Task.sleep(seconds: 2.0)
+        #expect(await receiver.items.isEmpty)
+    }
+
+    @Test
+    func cancel_withChecks() async throws {
+        let receiver = Receiver<Int>()
+
+        let taskQueue = SerialTaskQueue(cancelOnDeinit: true)
+        taskQueue.async {
+            guard !Task.isCancelled else { return }
+            try await Task.sleep(seconds: 1.0)
+            await receiver.add(1)
+        }
+        taskQueue.async {
+            guard !Task.isCancelled else { return }
+            try await Task.sleep(seconds: 0.5)
+            await receiver.add(2)
+        }
+        taskQueue.async {
+            guard !Task.isCancelled else { return }
+            await receiver.add(3)
+        }
+
+        // cancel the queue manually
+        taskQueue.cancel()
+
+        // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
+        // if they are not successfully cancelled
+        try await Task.sleep(seconds: 2.0)
+        #expect(await receiver.items.isEmpty)
     }
 
     /// Ensure that errors thrown from `.sync { }` body are rethrown.
