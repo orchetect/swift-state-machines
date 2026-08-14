@@ -14,14 +14,16 @@ public actor Collector<T: Sendable> {
     var receiver: Receiver? = nil
 
     nonisolated
-    let taskQueue = SerialTaskQueue()
+    let taskQueue: SerialTaskQueue
 
     var valuesBacklog: [T] = []
 
     public init(
+        cancelOnDeinit: Bool = true,
         receiver: Receiver? = nil
     ) {
         self.receiver = receiver
+        taskQueue = SerialTaskQueue(cancelOnDeinit: cancelOnDeinit)
     }
 
     deinit {
