@@ -16,15 +16,15 @@ struct SerialTaskQueue_Tests {
         let receiver = Receiver<Int>()
 
         let taskQueue = SerialTaskQueue()
-        taskQueue.enqueue {
+        taskQueue.async {
             try? await Task.sleep(seconds: 1.0)
             await receiver.add(1)
         }
-        taskQueue.enqueue {
+        taskQueue.async {
             try? await Task.sleep(seconds: 0.5)
             await receiver.add(2)
         }
-        taskQueue.enqueue {
+        taskQueue.async {
             await receiver.add(3)
         }
 
@@ -32,21 +32,21 @@ struct SerialTaskQueue_Tests {
     }
 
     @Test
-    func returnValues() async {
+    func returnValues() async throws {
         let receiver = Receiver<Int>()
 
         let taskQueue = SerialTaskQueue()
-        let value1 = await taskQueue.enqueueAndWait {
+        let value1 = try await taskQueue.sync {
             try? await Task.sleep(seconds: 1.0)
             await receiver.add(1)
             return 1
         }
-        let value2 = await taskQueue.enqueueAndWait {
+        let value2 = try await taskQueue.sync {
             try? await Task.sleep(seconds: 0.5)
             await receiver.add(2)
             return 2
         }
-        let value3 = await taskQueue.enqueueAndWait {
+        let value3 = try await taskQueue.sync {
             await receiver.add(3)
             return 3
         }
@@ -63,15 +63,15 @@ struct SerialTaskQueue_Tests {
         let receiver = Receiver<Int>()
 
         var taskQueue: SerialTaskQueue? = SerialTaskQueue(cancelOnDeinit: true)
-        taskQueue!.enqueue {
+        taskQueue!.async {
             try await Task.sleep(seconds: 1.0)
             await receiver.add(1)
         }
-        taskQueue!.enqueue {
+        taskQueue!.async {
             try await Task.sleep(seconds: 0.5)
             await receiver.add(2)
         }
-        taskQueue!.enqueue {
+        taskQueue!.async {
             await receiver.add(3)
         }
 
@@ -89,17 +89,17 @@ struct SerialTaskQueue_Tests {
         let receiver = Receiver<Int>()
 
         var taskQueue: SerialTaskQueue? = SerialTaskQueue(cancelOnDeinit: true)
-        taskQueue!.enqueue {
+        taskQueue!.async {
             guard !Task.isCancelled else { return }
             try await Task.sleep(seconds: 1.0)
             await receiver.add(1)
         }
-        taskQueue!.enqueue {
+        taskQueue!.async {
             guard !Task.isCancelled else { return }
             try await Task.sleep(seconds: 0.5)
             await receiver.add(2)
         }
-        taskQueue!.enqueue {
+        taskQueue!.async {
             guard !Task.isCancelled else { return }
             await receiver.add(3)
         }
@@ -118,15 +118,15 @@ struct SerialTaskQueue_Tests {
         let receiver = Receiver<Int>()
 
         var taskQueue: SerialTaskQueue? = SerialTaskQueue(cancelOnDeinit: false)
-        taskQueue!.enqueue {
+        taskQueue!.async {
             try await Task.sleep(seconds: 1.0)
             await receiver.add(1)
         }
-        taskQueue!.enqueue {
+        taskQueue!.async {
             try await Task.sleep(seconds: 0.5)
             await receiver.add(2)
         }
-        taskQueue!.enqueue {
+        taskQueue!.async {
             await receiver.add(3)
         }
 
@@ -141,17 +141,17 @@ struct SerialTaskQueue_Tests {
         let receiver = Receiver<Int>()
 
         var taskQueue: SerialTaskQueue? = SerialTaskQueue(cancelOnDeinit: false)
-        taskQueue!.enqueue {
+        taskQueue!.async {
             guard !Task.isCancelled else { return }
             try await Task.sleep(seconds: 1.0)
             await receiver.add(1)
         }
-        taskQueue!.enqueue {
+        taskQueue!.async {
             guard !Task.isCancelled else { return }
             try await Task.sleep(seconds: 0.5)
             await receiver.add(2)
         }
-        taskQueue!.enqueue {
+        taskQueue!.async {
             guard !Task.isCancelled else { return }
             await receiver.add(3)
         }
@@ -162,11 +162,40 @@ struct SerialTaskQueue_Tests {
         await wait(expect: { await receiver.items == [1, 2, 3] }, timeout: 10.0)
     }
 
+    /// Ensure that errors thrown from `.sync { }` body are rethrown.
     @Test
-    func deadlock() async throws {
-        let taskQueue = SerialTaskQueue()
-        await taskQueue.enqueueAndWait {
-            await taskQueue.enqueueAndWait { }
+    func syncThrowError() async throws {
+        let taskQueue = SerialTaskQueue(cancelOnDeinit: false)
+
+        struct FooError: Error, Equatable, Hashable, Sendable { }
+
+        await #expect(throws: FooError.self) {
+            _ = try await taskQueue.sync { throw FooError() }
         }
     }
+
+    /// `.sync { }` requires `cancelOnDeinit` to be `false` otherwise it always throws.
+    @Test
+    func syncWithCancelOnDeinit() async throws {
+        let taskQueue = SerialTaskQueue(cancelOnDeinit: true)
+
+        await #expect(throws: CancellationError.self) {
+            _ = try await taskQueue.sync { 1 }
+        }
+    }
+
+    // WARNING: This test will cause a guaranteed deadlock.
+    // It's not trivial to implement deadlock detection or a timeout so we can't test deadlocks
+    // without deadlocking the actual test itself.
+    // @Test
+    // func deadlock() async throws {
+    //     let taskQueue = SerialTaskQueue()
+    //     print("call 1")
+    //     try await taskQueue.sync {
+    //         print("call 2")
+    //         try await taskQueue.sync { }
+    //         print("call 2 done")
+    //     }
+    //     print("call 1 done")
+    // }
 }
