@@ -36,7 +36,7 @@ public final class SerialTaskQueue {
     /// When `true`, if an operation is in-progress it will be cancelled and any remaining operations
     /// enqueued will be discarded.
     ///
-    /// When `false, all enqueued operations are allowed to complete in serial order in the background.
+    /// When `false`, all enqueued operations are allowed to complete in serial order in the background.
     nonisolated
     public let isCancelledOnDeinit: Bool
 
