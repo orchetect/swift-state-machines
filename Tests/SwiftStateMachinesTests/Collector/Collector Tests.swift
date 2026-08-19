@@ -30,6 +30,9 @@ struct Collector_Tests {
         }
 
         await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
+
+        // restate expectation using Swift Testing native macros for more detailed logging
+        #expect(receiver.items == [1, 2, 3])
     }
 
     @Test(arguments: 0 ..< 10)
@@ -45,6 +48,9 @@ struct Collector_Tests {
         collector.publish(3)
 
         await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
+
+        // restate expectation using Swift Testing native macros for more detailed logging
+        #expect(receiver.items == [1, 2, 3])
     }
 
     /// Test that existential Sendable types such as closures work.
@@ -61,6 +67,9 @@ struct Collector_Tests {
         collector.publish({ 3 })
 
         await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
+
+        // restate expectation using Swift Testing native macros for more detailed logging
+        #expect(receiver.items == [1, 2, 3])
     }
 
     #if !GITHUB_ACTIONS
@@ -79,16 +88,19 @@ struct Collector_Tests {
             }
 
             let inTime = Date()
-            collector.publish(3)
-            collector.publish(2)
             collector.publish(1)
+            collector.publish(2)
+            collector.publish(3)
 
             // check ordering
-            await wait(expect: { receiver.items == [3, 2, 1] }, timeout: 10.0)
+            await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 10.0)
             let outTime = Date()
 
             // sends should run serially
             #expect(outTime.timeIntervalSince(inTime) >= 6.0)
+
+            // restate expectation using Swift Testing native macros for more detailed logging
+            #expect(receiver.items == [1, 2, 3])
         }
 
         let inTime = Date()

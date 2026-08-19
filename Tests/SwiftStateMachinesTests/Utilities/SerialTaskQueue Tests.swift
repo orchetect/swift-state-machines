@@ -29,6 +29,9 @@ struct SerialTaskQueue_Tests {
         }
 
         await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 20.0)
+
+        // restate expectation using Swift Testing native macros for more detailed logging
+        #expect(receiver.items == [1, 2, 3])
     }
 
     @Test
@@ -81,7 +84,7 @@ struct SerialTaskQueue_Tests {
         // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
         // if they are not successfully cancelled
         try await Task.sleep(seconds: 2.0)
-        #expect(receiver.items.isEmpty)
+        #expect(receiver.items == [])
     }
 
     @Test
@@ -110,7 +113,7 @@ struct SerialTaskQueue_Tests {
         // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
         // if they are not successfully cancelled
         try await Task.sleep(seconds: 2.0)
-        #expect(receiver.items.isEmpty)
+        #expect(receiver.items == [])
     }
 
     @Test
@@ -134,6 +137,9 @@ struct SerialTaskQueue_Tests {
         taskQueue = nil
 
         await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 20.0)
+
+        // restate expectation using Swift Testing native macros for more detailed logging
+        #expect(receiver.items == [1, 2, 3])
     }
 
     @Test
@@ -160,6 +166,9 @@ struct SerialTaskQueue_Tests {
         taskQueue = nil
 
         await wait(expect: { receiver.items == [1, 2, 3] }, timeout: 20.0)
+
+        // restate expectation using Swift Testing native macros for more detailed logging
+        #expect(receiver.items == [1, 2, 3])
     }
 
     @Test
@@ -185,7 +194,7 @@ struct SerialTaskQueue_Tests {
         // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
         // if they are not successfully cancelled
         try await Task.sleep(seconds: 2.0)
-        #expect(receiver.items.isEmpty)
+        #expect(receiver.items == [])
     }
 
     @Test
@@ -214,7 +223,7 @@ struct SerialTaskQueue_Tests {
         // wait a minimum duration in order to catch any potentially non-cancelled enqueued tasks
         // if they are not successfully cancelled
         try await Task.sleep(seconds: 2.0)
-        #expect(receiver.items.isEmpty)
+        #expect(receiver.items == [])
     }
 
     /// Ensure that errors thrown from `.sync { }` body are rethrown.
